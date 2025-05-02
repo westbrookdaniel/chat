@@ -11,6 +11,7 @@ export const threadTable = pgTable("thread", {
     .references(() => userTable.id),
   title: text("title").notNull(),
   data: json("data").notNull(),
+
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()
