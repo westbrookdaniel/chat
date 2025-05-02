@@ -1,5 +1,6 @@
 import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
-import type { InferSelectModel } from "drizzle-orm";
+import { relations, type InferSelectModel } from "drizzle-orm";
+import { threadTable } from "./threads";
 
 export const userTable = pgTable("user", {
   id: serial("id").primaryKey(),
@@ -24,6 +25,10 @@ export const sessionTable = pgTable("session", {
     mode: "date",
   }).notNull(),
 });
+
+export const userRelations = relations(userTable, ({ many }) => ({
+  threads: many(threadTable),
+}));
 
 export type User = InferSelectModel<typeof userTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
