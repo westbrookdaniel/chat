@@ -5,6 +5,8 @@ export const userTable = pgTable("user", {
   id: serial("id").primaryKey(),
   githubId: text("github_id").notNull().unique(),
   username: text("username").notNull(),
+  fullName: text("full_name"),
+  avatarUrl: text("avatar_url"),
 
   createdAt: timestamp({ withTimezone: true }).defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
