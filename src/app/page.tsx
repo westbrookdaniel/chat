@@ -4,23 +4,17 @@ import {
   getCurrentSession,
   invalidateSession,
 } from "@/lib/session";
+import { Chat } from "./chat";
 
 export default async function Page() {
   const { user } = await getCurrentSession();
   if (user === null) {
     return redirect("/login");
   }
-  return (
-    <div>
-      <h1>Hi, {user.fullName ?? user.username}!</h1>
-      <form action={logout}>
-        <button>Sign out</button>
-      </form>
-    </div>
-  );
+  return <Chat user={user} logoutAction={logoutAction} />;
 }
 
-async function logout() {
+async function logoutAction() {
   "use server";
   const { session } = await getCurrentSession();
   if (!session) return;
