@@ -10,6 +10,7 @@
     "db": "drizzle-kit"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.14",
     "@ai-sdk/openai": "^1.3.21",
     "@ai-sdk/react": "^1.2.11",
     "@hookform/resolvers": "^5.0.1",

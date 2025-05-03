@@ -11,7 +11,7 @@ export const threadTable = pgTable("thread", {
     .references(() => userTable.id),
   title: text("title").notNull(),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: json("data").notNull().$type<{ messages?: any[] }>(),
+  data: json("data").notNull().$type<{ messages?: any[] } & Options>(),
 
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
@@ -28,3 +28,8 @@ export const threadRelations = relations(threadTable, ({ one }) => ({
 }));
 
 export type Thread = InferSelectModel<typeof threadTable>;
+
+export type Options = {
+  thinking?: boolean;
+  search?: boolean;
+};

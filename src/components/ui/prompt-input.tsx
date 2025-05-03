@@ -167,7 +167,7 @@ function PromptInputAction({
   const { disabled } = usePromptInput();
 
   return (
-    <Tooltip {...props}>
+    <Tooltip delayDuration={700} {...props}>
       <TooltipTrigger asChild disabled={disabled}>
         {children}
       </TooltipTrigger>

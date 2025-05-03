@@ -7,7 +7,15 @@ import { ChatContainer } from "./ui/chat-container";
 import { createThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { UserWithThreads } from "@/lib/session";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { Options } from "@/db";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningResponse,
+  ReasoningTrigger,
+} from "@/components/ui/reasoning";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 export function ThreadView({
   user,
@@ -22,13 +30,28 @@ export function ThreadView({
 }) {
   const queryClient = getQueryClient();
 
+  const [options, setOptions] = useState<Options>({
+    search: thread?.data.search ?? false,
+    thinking: thread?.data.thinking ?? false,
+  });
+
   const name = user.fullName ? user.fullName.split(" ")[0] : user.username;
   const id = thread?.id ?? generateId();
 
-  const { messages, input, handleInputChange, status, handleSubmit } = useChat({
+  const {
+    messages,
+    error,
+    stop,
+    input,
+    handleInputChange,
+    status,
+    handleSubmit,
+  } = useChat({
     id,
     initialMessages: thread?.data.messages,
     initialInput: active?.prompt,
+    body: options,
+    sendExtraMessageFields: true,
   });
 
   useEffect(() => {
@@ -47,7 +70,17 @@ export function ThreadView({
       {thread ? (
         <div className="flex flex-col flex-[1_1_auto] h-[1px]">
           <ChatContainer autoScroll className="flex-1 py-8">
-            <Messages messages={messages} />
+            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-8 lg:px-16">
+              {messages.map((message, i) => (
+                <MessageDisplay key={i} message={message} />
+              ))}
+              {error ? (
+                <Alert className="max-w-xl">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error.message}</AlertDescription>
+                </Alert>
+              ) : null}
+            </div>
           </ChatContainer>
         </div>
       ) : (
@@ -62,6 +95,7 @@ export function ThreadView({
               const nextThread = await createThread({
                 userId: user.id,
                 messages: [],
+                ...options,
               });
 
               const newUser = {
@@ -72,35 +106,66 @@ export function ThreadView({
               queryClient.setQueryData(["user", user.id], newUser);
 
               setActive({ id: nextThread.id, prompt: input });
+            } else {
+              handleSubmit();
             }
           }}
           handleInputChange={handleInputChange}
           value={input}
           status={status}
+          stop={stop}
+          options={options}
+          setOptions={setOptions}
         />
       </div>
     </div>
   );
 }
 
-export function Messages({ messages }: { messages: UIMessage[] }) {
+function MessageDisplay({ message }: { message: UIMessage }) {
+  console.log(message);
+
+  if (message.role === "user") {
+    return (
+      <Message className="justify-end">
+        <MessageContent>{message.content}</MessageContent>
+      </Message>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-8 lg:px-16">
-      {messages.map((message, i) =>
-        message.role === "user" ? (
-          <Message className="justify-end" key={i}>
-            <MessageContent>{message.content}</MessageContent>
-          </Message>
-        ) : (
-          <Message className="justify-start" key={i}>
-            <div className="flex w-full flex-col gap-2">
-              <MessageContent markdown className="bg-transparent p-0">
-                {message.content}
+    <Message className="justify-start">
+      <div className="flex w-full flex-col gap-2">
+        {message.parts.map((part, i) => {
+          if (part.type === "text") {
+            return (
+              <MessageContent key={i} markdown className="bg-transparent p-0">
+                {part.text}
               </MessageContent>
-            </div>
-          </Message>
-        ),
-      )}
-    </div>
+            );
+          }
+
+          if (part.type === "reasoning") {
+            return (
+              <div className="rounded-md border max-w-2xl mb-2" key={i}>
+                <Reasoning key={i}>
+                  <div className="flex items-center justify-between">
+                    <ReasoningTrigger className="w-full px-4 py-4">
+                      Show reasoning
+                    </ReasoningTrigger>
+                  </div>
+                  <ReasoningContent>
+                    <ReasoningResponse
+                      className="px-4 -mt-3 pb-1"
+                      text={part.reasoning}
+                    />
+                  </ReasoningContent>
+                </Reasoning>
+              </div>
+            );
+          }
+        })}
+      </div>
+    </Message>
   );
 }
