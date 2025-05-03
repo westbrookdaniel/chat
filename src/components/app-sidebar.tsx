@@ -68,6 +68,7 @@ export function AppSidebar({
                   <SidebarMenuButton
                     onClick={() => setThreadId(item.id)}
                     isActive={threadId === item.id}
+                    className="px-3"
                   >
                     <span>{item.title}</span>
                   </SidebarMenuButton>
