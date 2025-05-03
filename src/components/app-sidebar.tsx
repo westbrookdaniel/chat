@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Plus, Trash } from "lucide-react";
+import { MoreHorizontal, Plus, Trash } from "lucide-react";
 
 import {
   Sidebar,
@@ -25,12 +25,12 @@ import { getQueryClient } from "@/app/providers";
 
 export function AppSidebar({
   user,
-  threadId,
-  setThreadId,
+  active,
+  setActive,
 }: {
   user: UserWithThreads;
-  threadId: string | null;
-  setThreadId: (id: string) => void;
+  active: { id: string; prompt?: string } | null;
+  setActive: (input: { id: string; prompt?: string } | null) => void;
 }) {
   const queryClient = getQueryClient();
 
@@ -50,7 +50,7 @@ export function AppSidebar({
 
               queryClient.setQueryData(["user", user.id], newUser);
 
-              setThreadId(newThread.id);
+              setActive({ id: newThread.id });
             }}
           >
             <Plus />
@@ -66,8 +66,8 @@ export function AppSidebar({
               {user.threads.map((item) => (
                 <SidebarMenuItem key={item.id} className="group/item">
                   <SidebarMenuButton
-                    onClick={() => setThreadId(item.id)}
-                    isActive={threadId === item.id}
+                    onClick={() => setActive({ id: item.id })}
+                    isActive={active?.id === item.id}
                     className="px-3"
                   >
                     <span>{item.title}</span>

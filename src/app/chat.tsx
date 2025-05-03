@@ -1,7 +1,6 @@
 "use client";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import { Landing } from "@/components/landing";
 import { ThreadView } from "@/components/thread";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import type { UserWithThreads } from "@/lib/session";
@@ -18,19 +17,23 @@ export function Chat({ user: initialUser }: { user: UserWithThreads }) {
 
   const user = userQuery.data ?? initialUser;
 
-  const [threadId, setThreadId] = useState<null | string>(null);
+  const [active, setActive] = useState<null | { id: string; prompt?: string }>(
+    null,
+  );
 
-  const thread = user.threads.find((t) => t.id === threadId);
+  const thread = user.threads.find((t) => t.id === active?.id);
 
   return (
     <SidebarProvider>
-      <AppSidebar user={user} threadId={threadId} setThreadId={setThreadId} />
+      <AppSidebar user={user} active={active} setActive={setActive} />
       <SidebarInset>
-        {thread ? (
-          <ThreadView thread={thread} />
-        ) : (
-          <Landing user={user} createThread={async () => {}} />
-        )}
+        <ThreadView
+          key={thread?.id}
+          user={user}
+          thread={thread}
+          active={active}
+          setActive={setActive}
+        />
       </SidebarInset>
     </SidebarProvider>
   );
