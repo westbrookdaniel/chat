@@ -21,12 +21,22 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import type { UserWithThreads } from "@/lib/session";
 
-export function AppSidebar({ user }: { user: UserWithThreads }) {
+export function AppSidebar({
+  user,
+  threadId,
+  setThreadId,
+  createThread,
+}: {
+  user: UserWithThreads;
+  threadId: string | null;
+  setThreadId: (id: string) => void;
+  createThread: () => void;
+}) {
   return (
     <Sidebar>
       <SidebarContent className="gap-0">
         <SidebarHeader className="gap-2 mt-1">
-          <Button>
+          <Button onClick={createThread}>
             <Plus />
           </Button>
           <Input className="bg-white" placeholder="Search chats..." />
@@ -36,7 +46,10 @@ export function AppSidebar({ user }: { user: UserWithThreads }) {
             <SidebarMenu className="gap-0">
               {user.threads.map((item) => (
                 <SidebarMenuItem key={item.id} className="group/item">
-                  <SidebarMenuButton>
+                  <SidebarMenuButton
+                    onClick={() => setThreadId(item.id)}
+                    isActive={threadId === item.id}
+                  >
                     <span>{item.title}</span>
                   </SidebarMenuButton>
 

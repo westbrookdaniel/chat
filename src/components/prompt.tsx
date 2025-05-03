@@ -11,7 +11,7 @@ import { ArrowUp, Globe, Lightbulb, Paperclip } from "lucide-react";
 
 export function Prompt() {
   return (
-    <PromptInput className="shadow-2xl">
+    <PromptInput className="shadow-xl">
       <PromptInputTextarea placeholder="Ask chat" />
       <PromptInputActions className="gap-0">
         <PromptInputAction tooltip="Upload File">
