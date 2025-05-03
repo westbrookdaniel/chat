@@ -19,31 +19,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import type { UserWithThreads } from "@/lib/session";
 
-const items = [
-  {
-    title: "Home",
-    url: "#",
-  },
-  {
-    title: "Inbox",
-    url: "#",
-  },
-  {
-    title: "Calendar",
-    url: "#",
-  },
-  {
-    title: "Search",
-    url: "#",
-  },
-  {
-    title: "Settings",
-    url: "#",
-  },
-];
-
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: UserWithThreads }) {
   return (
     <Sidebar>
       <SidebarContent className="gap-0">
@@ -56,12 +34,10 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0">
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title} className="group/item">
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <span>{item.title}</span>
-                    </a>
+              {user.threads.map((item) => (
+                <SidebarMenuItem key={item.id} className="group/item">
+                  <SidebarMenuButton>
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
 
                   <DropdownMenu>
