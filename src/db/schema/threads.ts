@@ -10,7 +10,8 @@ export const threadTable = pgTable("thread", {
     .notNull()
     .references(() => userTable.id),
   title: text("title").notNull(),
-  data: json("data").notNull(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: json("data").notNull().$type<{ messages?: any[] }>(),
 
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
