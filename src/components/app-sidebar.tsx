@@ -39,6 +39,7 @@ export function AppSidebar({
       <SidebarContent className="gap-0">
         <SidebarHeader className="gap-2 mt-1">
           <Button
+            className="rounded-full"
             onClick={async () => {
               const newThread = await createThread({ userId: user.id });
 
