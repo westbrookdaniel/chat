@@ -20,30 +20,48 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import type { UserWithThreads } from "@/lib/session";
+import { createThread, deleteThread } from "@/app/actions";
+import { getQueryClient } from "@/app/providers";
 
 export function AppSidebar({
   user,
   threadId,
   setThreadId,
-  createThread,
 }: {
   user: UserWithThreads;
   threadId: string | null;
   setThreadId: (id: string) => void;
-  createThread: () => void;
 }) {
+  const queryClient = getQueryClient();
+
   return (
     <Sidebar>
       <SidebarContent className="gap-0">
         <SidebarHeader className="gap-2 mt-1">
-          <Button onClick={createThread}>
+          <Button
+            onClick={async () => {
+              const newThread = await createThread({ userId: user.id });
+
+              const newUser = {
+                ...user,
+                threads: [...user.threads, newThread],
+              };
+
+              queryClient.setQueryData(["user", user.id], newUser);
+
+              setThreadId(newThread.id);
+            }}
+          >
             <Plus />
           </Button>
-          <Input className="bg-white" placeholder="Search chats..." />
+          <Input
+            className="shadow-none border-none focus-visible:ring-0"
+            placeholder="Search chats..."
+          />
         </SidebarHeader>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0">
+            <SidebarMenu className="gap-0.5">
               {user.threads.map((item) => (
                 <SidebarMenuItem key={item.id} className="group/item">
                   <SidebarMenuButton
@@ -60,11 +78,26 @@ export function AppSidebar({
                       </SidebarMenuAction>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start">
-                      <DropdownMenuItem>
-                        <Pencil />
-                        <span>Rename</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      {/*
+                        <DropdownMenuItem>
+                          <Pencil />
+                          <span>Rename</span>
+                        </DropdownMenuItem>
+                      */}
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          await deleteThread({ userId: user.id, id: item.id });
+
+                          const newUser = {
+                            ...user,
+                            threads: user.threads.filter(
+                              (thread) => thread.id !== item.id,
+                            ),
+                          };
+
+                          queryClient.setQueryData(["user", user.id], newUser);
+                        }}
+                      >
                         <Trash />
                         <span>Delete</span>
                       </DropdownMenuItem>

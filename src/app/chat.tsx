@@ -9,13 +9,7 @@ import { getUser } from "@/lib/thread";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-export function Chat({
-  user: initialUser,
-  logoutAction,
-}: {
-  user: UserWithThreads;
-  logoutAction: () => void;
-}) {
+export function Chat({ user: initialUser }: { user: UserWithThreads }) {
   const userQuery = useQuery({
     queryKey: ["user", initialUser.id],
     initialData: initialUser,
@@ -30,19 +24,12 @@ export function Chat({
 
   return (
     <SidebarProvider>
-      <AppSidebar
-        user={user}
-        threadId={threadId}
-        setThreadId={setThreadId}
-        createThread={() => {
-          console.log("TODO");
-        }}
-      />
+      <AppSidebar user={user} threadId={threadId} setThreadId={setThreadId} />
       <SidebarInset>
         {thread ? (
           <ThreadView thread={thread} />
         ) : (
-          <Landing user={user} createThread={() => {}} />
+          <Landing user={user} createThread={async () => {}} />
         )}
       </SidebarInset>
     </SidebarProvider>
