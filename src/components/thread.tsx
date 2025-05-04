@@ -127,8 +127,6 @@ export function ThreadView({
 }
 
 function MessageDisplay({ message }: { message: UIMessage }) {
-  console.log(message);
-
   if (message.role === "user") {
     return (
       <Message className="justify-end">
@@ -145,7 +143,12 @@ function MessageDisplay({ message }: { message: UIMessage }) {
         {message.parts.map((part, i) => {
           if (part.type === "text") {
             return (
-              <MessageContent key={i} markdown className="bg-transparent p-0">
+              <MessageContent
+                id={message.id + i}
+                key={i}
+                markdown
+                className="bg-transparent p-0"
+              >
                 {part.text}
               </MessageContent>
             );

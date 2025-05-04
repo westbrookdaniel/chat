@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { useEffect, useState } from "react";
+import React, { startTransition, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 
 export type CodeBlockProps = {
@@ -44,7 +44,9 @@ function CodeBlockCode({
     async function highlight() {
       if (!code) return;
       const html = await codeToHtml(code, { lang: language, theme });
-      setHighlightedHtml(html);
+      startTransition(() => {
+        setHighlightedHtml(html);
+      });
     }
     highlight();
   }, [code, language, theme]);
