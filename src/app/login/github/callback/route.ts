@@ -47,6 +47,15 @@ export async function GET(request: Request): Promise<Response> {
     const githubName = githubUser.name;
     const githubAvatarUrl = githubUser.avatar_url;
 
+    const betaUsernames = process.env.BETA_USERNAMES?.split(",") ?? [];
+    if (!betaUsernames.includes(githubUsername)) {
+      console.log("[Login][GitHub][Denied]", githubUsername);
+      return new Response(
+        "This app is in private beta. Your GitHub username is not on the allowlist.",
+        { status: 403, headers: { "Content-Type": "text/plain" } },
+      );
+    }
+
     const existingUser = await db.query.userTable.findFirst({
       where: eq(userTable.githubId, githubUserId),
     });

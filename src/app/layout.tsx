@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Chat",
-  description: "Daniel Westbrook's chat app",
+  description: "Welcome to your own fast and streamlined chat",
 };
 
 export default function RootLayout({
