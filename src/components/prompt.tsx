@@ -7,6 +7,7 @@ import {
 import { Button } from "./ui/button";
 import { ArrowUp, Globe, Lightbulb, Paperclip, Square } from "lucide-react";
 import type { Options } from "@/db";
+import { cn } from "@/lib/utils";
 
 export function Prompt({
   value,
@@ -31,24 +32,19 @@ export function Prompt({
       onSubmit={onSubmit}
       handleInputChange={handleInputChange}
     >
-      <PromptInputTextarea placeholder="Ask chat" />
+      <PromptInputTextarea autoFocus placeholder="Ask chat" />
       <PromptInputActions className="gap-1">
         <PromptInputAction tooltip="Upload File">
           <Button className="rounded-full" size="icon" variant="ghost">
             <Paperclip />
           </Button>
         </PromptInputAction>
-        <PromptInputAction tooltip="Thinking">
-          <Button
-            className="rounded-full"
-            size={options.thinking ? "default" : "icon"}
-            variant={options.thinking ? "secondary" : "ghost"}
-            onClick={() => setOptions((p) => ({ ...p, thinking: !p.thinking }))}
-          >
-            <Lightbulb />
-            {options.thinking ? <span>Thinking</span> : null}
-          </Button>
-        </PromptInputAction>
+        <ExpandingButton
+          enabled={!!options.thinking}
+          toggle={() => setOptions((p) => ({ ...p, thinking: !p.thinking }))}
+          label="Thinking"
+          Icon={Lightbulb}
+        />
         {/*
         <PromptInputAction tooltip="Search">
           <Button
@@ -84,5 +80,43 @@ export function Prompt({
         </Button>
       </PromptInputActions>
     </PromptInput>
+  );
+}
+
+function ExpandingButton({
+  label,
+  Icon,
+  enabled,
+  toggle,
+}: {
+  label: string;
+  Icon: React.ComponentType<any>;
+  enabled: boolean;
+  toggle: () => void;
+}) {
+  return (
+    <PromptInputAction tooltip={label}>
+      <Button
+        className={cn(
+          "rounded-full transition-all duration-300 overflow-hidden relative",
+          enabled ? "w-26" : "w-9 px-0",
+        )}
+        size={enabled ? "default" : "icon"}
+        variant={enabled ? "secondary" : "ghost"}
+        onClick={() => toggle()}
+      >
+        <Icon className="absolute left-2.5" />
+        <span
+          className={cn(
+            "transition-opacity pl-4",
+            enabled
+              ? "opacity-100 duration-600"
+              : "opacity-0 pointer-events-none duration-50",
+          )}
+        >
+          {label}
+        </span>
+      </Button>
+    </PromptInputAction>
   );
 }

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import type { UserWithThreads } from "@/lib/session";
-import { createThread, deleteThread } from "@/app/actions";
+import { deleteThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { useEffect, useRef, useState } from "react";
 import Fuse from "fuse.js";
@@ -58,16 +58,7 @@ export function AppSidebar({
               className="flex-1 min-w-9"
               size="icon"
               onClick={async () => {
-                const newThread = await createThread({ userId: user.id });
-
-                const newUser = {
-                  ...user,
-                  threads: [newThread, ...user.threads],
-                };
-
-                queryClient.setQueryData(["user", user.id], newUser);
-
-                setActive({ id: newThread.id });
+                setActive(null);
               }}
             >
               <Plus />

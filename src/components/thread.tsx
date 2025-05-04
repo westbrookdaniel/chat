@@ -62,6 +62,14 @@ export function ThreadView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active?.prompt]);
 
+  const hours = new Date().getHours();
+  const greeting =
+    hours < 12
+      ? "Good Morning"
+      : hours < 18
+        ? "Good Afternoon"
+        : "Good Evening";
+
   return (
     <div
       className={
@@ -88,7 +96,7 @@ export function ThreadView({
         </div>
       ) : (
         <p className="mb-6 text-2xl font-medium text-neutral-400">
-          Good Morning, {name}
+          {greeting}, {name}
         </p>
       )}
       <div className="pb-8 px-8 lg:px-16 mx-auto w-full max-w-4xl">
