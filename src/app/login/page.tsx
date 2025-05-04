@@ -10,9 +10,12 @@ export default async function Page() {
       <p className="mb-6 text-neutral-400">
         Welcome to your own fast and streamlined chat
       </p>
-      <Button asChild>
+      <Button asChild className="w-[300px]">
         <a href="/login/github">Sign in with GitHub</a>
       </Button>
+      <pre className="-mb-16 mt-16 text-neutral-500 px-1.5 py-0.5 rounded-sm bg-secondary text-sm">
+        beta
+      </pre>
     </div>
   );
 }
