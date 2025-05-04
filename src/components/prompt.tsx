@@ -5,7 +5,7 @@ import {
   PromptInputActions,
 } from "@/components/ui/prompt-input";
 import { Button } from "./ui/button";
-import { ArrowUp, Globe, Lightbulb, Paperclip, Square } from "lucide-react";
+import { ArrowUp, Lightbulb, Square } from "lucide-react";
 import type { Options } from "@/db";
 import { cn } from "@/lib/utils";
 
@@ -92,6 +92,7 @@ function ExpandingButton({
   toggle,
 }: {
   label: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Icon: React.ComponentType<any>;
   enabled: boolean;
   toggle: () => void;
