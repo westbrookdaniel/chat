@@ -27,7 +27,6 @@ export function Prompt({
 }) {
   return (
     <PromptInput
-      className="shadow-xl"
       value={value}
       onSubmit={onSubmit}
       handleInputChange={handleInputChange}

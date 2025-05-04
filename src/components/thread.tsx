@@ -131,7 +131,9 @@ function MessageDisplay({ message }: { message: UIMessage }) {
   if (message.role === "user") {
     return (
       <Message className="justify-end">
-        <MessageContent>{message.content}</MessageContent>
+        <MessageContent className="whitespace-pre-wrap">
+          {message.content}
+        </MessageContent>
       </Message>
     );
   }
