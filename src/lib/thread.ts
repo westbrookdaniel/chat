@@ -1,6 +1,6 @@
 "use server";
 
-import { db, eq, userTable } from "@/db";
+import { desc, db, eq, threadTable, userTable } from "@/db";
 import { UserWithThreads } from "./session";
 
 export async function getUser(
@@ -8,6 +8,10 @@ export async function getUser(
 ): Promise<UserWithThreads | undefined> {
   return db.query.userTable.findFirst({
     where: eq(userTable.id, userId),
-    with: { threads: true },
+    with: {
+      threads: {
+        orderBy: [desc(threadTable.updatedAt)],
+      },
+    },
   });
 }

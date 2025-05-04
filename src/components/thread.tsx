@@ -52,6 +52,9 @@ export function ThreadView({
     initialInput: active?.prompt,
     body: options,
     sendExtraMessageFields: true,
+    onFinish() {
+      queryClient.invalidateQueries({ queryKey: ["user", user.id] });
+    },
   });
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export function ThreadView({
 
               const newUser = {
                 ...user,
-                threads: [...user.threads, nextThread],
+                threads: [nextThread, ...user.threads],
               };
 
               queryClient.setQueryData(["user", user.id], newUser);

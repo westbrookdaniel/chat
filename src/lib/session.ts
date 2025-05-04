@@ -1,5 +1,14 @@
 import { cookies } from "next/headers";
-import { type User, type Session, db, sessionTable, eq, Thread } from "@/db";
+import {
+  type User,
+  type Session,
+  db,
+  sessionTable,
+  eq,
+  Thread,
+  desc,
+  threadTable,
+} from "@/db";
 import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase,
@@ -34,7 +43,15 @@ export async function validateSessionToken(
   const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
   const session = await db.query.sessionTable.findFirst({
     where: eq(sessionTable.id, sessionId),
-    with: { user: { with: { threads: true } } },
+    with: {
+      user: {
+        with: {
+          threads: {
+            orderBy: [desc(threadTable.updatedAt)],
+          },
+        },
+      },
+    },
   });
 
   if (!session) {

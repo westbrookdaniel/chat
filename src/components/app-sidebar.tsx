@@ -45,7 +45,7 @@ export function AppSidebar({
 
               const newUser = {
                 ...user,
-                threads: [...user.threads, newThread],
+                threads: [newThread, ...user.threads],
               };
 
               queryClient.setQueryData(["user", user.id], newUser);
