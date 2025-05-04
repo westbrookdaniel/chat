@@ -1,13 +1,4 @@
-import {
-  BadgeCheck,
-  CreditCard,
-  LogOut,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Sparkles,
-  Trash,
-} from "lucide-react";
+import { LogOut, MoreHorizontal, Plus, Search, Trash } from "lucide-react";
 
 import {
   Sidebar,
@@ -26,9 +17,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";

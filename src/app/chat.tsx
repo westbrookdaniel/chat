@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import type { UserWithThreads } from "@/lib/session";
 import { getUser } from "@/lib/thread";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function Chat({ user: initialUser }: { user: UserWithThreads }) {
   const userQuery = useQuery({
@@ -22,6 +22,14 @@ export function Chat({ user: initialUser }: { user: UserWithThreads }) {
   );
 
   const thread = user.threads.find((t) => t.id === active?.id);
+
+  useEffect(() => {
+    if (thread) {
+      window.document.title = `${thread.title} - Chat`;
+    } else {
+      window.document.title = "Chat";
+    }
+  }, [thread]);
 
   return (
     <SidebarProvider>
