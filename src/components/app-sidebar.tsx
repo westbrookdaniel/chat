@@ -190,7 +190,9 @@ function NavUser({ user }: { user: User }) {
                   src={user.avatarUrl!}
                   alt={user.fullName ?? user.username}
                 />
-                <AvatarFallback className="rounded-full">CN</AvatarFallback>
+                <AvatarFallback className="rounded-full">
+                  {user.username[0]}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
