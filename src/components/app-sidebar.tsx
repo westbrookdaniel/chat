@@ -1,8 +1,18 @@
-import { MoreHorizontal, Plus, Search, Trash } from "lucide-react";
+import {
+  BadgeCheck,
+  CreditCard,
+  LogOut,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Sparkles,
+  Trash,
+} from "lucide-react";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -10,20 +20,26 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import type { UserWithThreads } from "@/lib/session";
-import { deleteThread } from "@/app/actions";
+import { deleteThread, logoutAction } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { useEffect, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { User } from "@/db";
 
 export function AppSidebar({
   user,
@@ -117,6 +133,10 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
@@ -139,8 +159,8 @@ function SearchInput({
     <button
       className={cn(
         "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "relative transition-all duration-300",
-        isActive ? "w-128" : "w-9",
+        "relative transition-all ease-in-out duration-300",
+        isActive ? "w-[300px]" : "w-9",
       )}
       onClick={() => setIsActive(true)}
     >
@@ -162,5 +182,68 @@ function SearchInput({
         }}
       />
     </button>
+  );
+}
+
+function NavUser({ user }: { user: User }) {
+  const { isMobile } = useSidebar();
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar className="h-8 w-8 rounded-full">
+                <AvatarImage
+                  src={user.avatarUrl!}
+                  alt={user.fullName ?? user.username}
+                />
+                <AvatarFallback className="rounded-full">CN</AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">
+                  {user.fullName ?? user.username}
+                </span>
+                <span className="truncate text-xs">{user.username}</span>
+              </div>
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            align="end"
+            sideOffset={4}
+          >
+            {/*
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <Sparkles />
+                Upgrade to Pro
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <BadgeCheck />
+                Account
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CreditCard />
+                Billing
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            */}
+            <DropdownMenuItem onClick={() => logoutAction()}>
+              <LogOut />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }

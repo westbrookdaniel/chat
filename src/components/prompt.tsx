@@ -34,11 +34,13 @@ export function Prompt({
     >
       <PromptInputTextarea autoFocus placeholder="Ask chat" />
       <PromptInputActions className="gap-1">
+        {/*
         <PromptInputAction tooltip="Upload File">
           <Button className="rounded-full" size="icon" variant="ghost">
             <Paperclip />
           </Button>
         </PromptInputAction>
+        */}
         <ExpandingButton
           enabled={!!options.thinking}
           toggle={() => setOptions((p) => ({ ...p, thinking: !p.thinking }))}
