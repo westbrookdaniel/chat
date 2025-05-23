@@ -55,7 +55,8 @@ export function ThreadView({
   const id = thread?.id ?? generateId();
 
   const [options, setOptions] = useState<Options>({
-    high: thread?.data.high ?? false,
+    thinking: thread?.data.thinking ?? false,
+    model: thread?.data.model ?? "claude-4-sonnet-20250514",
   });
 
   const [files, setFiles] = useState<AttachedFile[]>([]);
@@ -389,13 +390,13 @@ function MessageDisplayInner({
               <div className="rounded-md border max-w-2xl mb-2" key={i}>
                 <Reasoning key={i}>
                   <div className="flex items-center justify-between">
-                    <ReasoningTrigger className="w-full px-4 py-4">
+                    <ReasoningTrigger className="text-sm w-full px-4 py-3">
                       Show reasoning
                     </ReasoningTrigger>
                   </div>
                   <ReasoningContent>
                     <ReasoningResponse
-                      className="px-4 -mt-3 pb-1"
+                      className="px-4 -mt-3.5 pb-1"
                       text={part.reasoning}
                     />
                   </ReasoningContent>

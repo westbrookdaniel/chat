@@ -91,7 +91,7 @@ function ReasoningTrigger({
           isOpen ? "rotate-180" : "",
         )}
       >
-        <ChevronDownIcon className="size-4" />
+        <ChevronDownIcon className="size-4 text-primary" />
       </div>
     </button>
   );

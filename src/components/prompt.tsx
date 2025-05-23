@@ -5,12 +5,26 @@ import {
   PromptInputActions,
 } from "@/components/ui/prompt-input";
 import { Button } from "./ui/button";
-import { ArrowUp, Brain, Square, Paperclip } from "lucide-react";
+import { ArrowUp, Brain, Square, Paperclip, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import type { Options } from "@/db";
 import { cn } from "@/lib/utils";
 import { FilePreviewList } from "./ui/file-preview";
 import { useRef } from "react";
 import type { AttachedFile } from "./thread";
+
+function supportsThinking(model: string): boolean {
+  return [
+    "claude-4-sonnet-20250514",
+    "claude-4-opus-20250514",
+    "claude-3-7-sonnet-20241217",
+  ].includes(model);
+}
 
 export function Prompt({
   value,
@@ -66,8 +80,34 @@ export function Prompt({
         onSubmit={onSubmit}
         handleInputChange={handleInputChange}
       >
-        <PromptInputTextarea autoFocus placeholder="Ask chat" />
+        <PromptInputTextarea autoFocus placeholder="Ask chat" className="mb-2" />
         <PromptInputActions className="gap-1">
+          <ModelSelector
+            model={options.model || "claude-4-sonnet-20250514"}
+            setModel={(model) =>
+              setOptions((p) => ({
+                ...p,
+                model: model as Options["model"],
+                // Disable thinking if new model doesn't support it
+                thinking: supportsThinking(model) ? p.thinking : false,
+              }))
+            }
+          />
+
+          {supportsThinking(options.model || "claude-4-sonnet-20250514") && (
+            <ExpandingButton
+              enabled={!!options.thinking}
+              toggle={() =>
+                setOptions((p) => ({ ...p, thinking: !p.thinking }))
+              }
+              label="Thinking"
+              Icon={Brain}
+              width={104}
+            />
+          )}
+
+          <div className="flex-1" />
+
           <input
             ref={fileInputRef}
             type="file"
@@ -78,22 +118,15 @@ export function Prompt({
           />
           <PromptInputAction tooltip="Upload File">
             <Button
-              className="rounded-full"
+              className="rounded-full mr-1"
               size="icon"
-              variant="ghost"
+              variant="outline"
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip />
             </Button>
           </PromptInputAction>
-          <ExpandingButton
-            enabled={!!options.high}
-            toggle={() => setOptions((p) => ({ ...p, high: !p.high }))}
-            label="Opus"
-            Icon={Brain}
-            width={84}
-          />
-          <div className="flex-1" />
+
           <Button
             disabled={status !== "ready" && status !== "streaming"}
             className="rounded-full"
@@ -138,10 +171,11 @@ function ExpandingButton({
       <Button
         className={cn(
           "rounded-full transition-all duration-300 overflow-hidden relative",
+          enabled && "bg-secondary",
         )}
         style={{ width: enabled ? `${width}px` : "36px" }}
         size={enabled ? "default" : "icon"}
-        variant={enabled ? "secondary" : "ghost"}
+        variant="outline"
         onClick={() => toggle()}
       >
         <Icon className="absolute left-2.5" />
@@ -156,6 +190,58 @@ function ExpandingButton({
           {label}
         </span>
       </Button>
+    </PromptInputAction>
+  );
+}
+
+function ModelSelector({
+  model,
+  setModel,
+}: {
+  model: string;
+  setModel: (
+    model:
+      | "claude-4-sonnet-20250514"
+      | "claude-4-opus-20250514"
+      | "claude-3-5-sonnet-20241022"
+      | "claude-3-7-sonnet-20241217",
+  ) => void;
+}) {
+  const models = [
+    { value: "claude-4-sonnet-20250514" as const, label: "Sonnet 4" },
+    { value: "claude-4-opus-20250514" as const, label: "Opus 4" },
+    { value: "claude-3-5-sonnet-20241022" as const, label: "Sonnet 3.5" },
+    { value: "claude-3-7-sonnet-20241217" as const, label: "Sonnet 3.7" },
+  ];
+
+  const currentModel =
+    models.find((m) => m.value === model)?.label || "Sonnet 4";
+
+  return (
+    <PromptInputAction tooltip="Select Model">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className="rounded-full gap-1 min-w-[100px]"
+            size="default"
+            variant="outline"
+          >
+            {currentModel}
+            <ChevronDown className="size-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="flex flex-col gap-0.5" align="end">
+          {models.map((m) => (
+            <DropdownMenuItem
+              key={m.value}
+              onClick={() => setModel(m.value)}
+              className={model === m.value ? "bg-accent" : ""}
+            >
+              {m.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </PromptInputAction>
   );
 }

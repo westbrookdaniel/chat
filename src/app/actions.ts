@@ -1,6 +1,6 @@
 "use server";
 
-import { and, db, eq, threadTable, userTable } from "@/db";
+import { and, db, eq, threadTable, userTable, type Options } from "@/db";
 import {
   deleteSessionTokenCookie,
   getCurrentSession,
@@ -20,13 +20,13 @@ export async function logoutAction() {
 export async function createThread({
   userId,
   messages,
-  high,
+  thinking,
+  model,
 }: {
   userId: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages?: any[];
-  high?: boolean;
-}) {
+} & Options) {
   const result = await db
     .insert(threadTable)
     .values({
@@ -34,7 +34,8 @@ export async function createThread({
       userId: userId,
       data: {
         messages: messages ?? [],
-        high,
+        thinking,
+        model,
       },
     })
     .returning();

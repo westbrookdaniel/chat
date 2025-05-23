@@ -2,12 +2,13 @@ import { db, eq, threadTable } from "@/db";
 import { getCurrentSession } from "@/lib/session";
 import { appendResponseMessages, generateText, streamText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
+import type { AnthropicProviderOptions } from "@ai-sdk/anthropic";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, id, high } = await req.json();
+  const { messages, id, thinking, model } = await req.json();
 
   const { user } = await getCurrentSession();
   if (!user) throw new Error("Unauthorised");
@@ -40,13 +41,18 @@ export async function POST(req: Request) {
       .where(eq(threadTable.id, id));
   }
 
-  const model = anthropic(
-    high ? "claude-4-opus-20250514" : "claude-4-sonnet-20250514",
-  );
+  const selectedModel = anthropic(model || "claude-4-sonnet-20250514");
 
   const result = streamText({
-    model,
+    model: selectedModel,
     messages,
+    ...(thinking && {
+      providerOptions: {
+        anthropic: {
+          thinking: { type: "enabled", budgetTokens: 15000 },
+        } satisfies AnthropicProviderOptions,
+      },
+    }),
 
     onError: ({ error }) => {
       console.error("Inference error", error);

@@ -30,5 +30,6 @@ export const threadRelations = relations(threadTable, ({ one }) => ({
 export type Thread = InferSelectModel<typeof threadTable>;
 
 export type Options = {
-  high?: boolean;
+  thinking?: boolean;
+  model?: "claude-4-sonnet-20250514" | "claude-4-opus-20250514" | "claude-3-5-sonnet-20241022" | "claude-3-7-sonnet-20241217";
 };
