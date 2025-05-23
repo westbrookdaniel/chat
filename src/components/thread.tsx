@@ -179,9 +179,12 @@ function MessageDisplay({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(message.content);
+  const [copied, setCopied] = useState(false);
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleEdit = () => {
@@ -285,7 +288,7 @@ function MessageDisplay({
                     className="h-7 w-7 p-0"
                     onClick={() => copyToClipboard(message.content)}
                   >
-                    <Copy className="h-3 w-3" />
+                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </MessageAction>
                 <MessageAction tooltip="Retry from here">
@@ -358,7 +361,7 @@ function MessageDisplay({
               className="h-7 w-7 p-0"
               onClick={() => copyToClipboard(getMessageText())}
             >
-              <Copy className="h-3 w-3" />
+              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             </Button>
           </MessageAction>
           <MessageAction tooltip="Retry from here">

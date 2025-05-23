@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import React, { startTransition, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { Button } from "./button";
-import { Copy } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 
 export type CodeBlockProps = {
   children?: React.ReactNode;
@@ -41,6 +41,7 @@ function CodeBlockCode({
   ...props
 }: CodeBlockCodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function highlight() {
@@ -53,8 +54,10 @@ function CodeBlockCode({
     highlight();
   }, [code, language, theme]);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(code);
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const classNames = cn(
@@ -71,7 +74,7 @@ function CodeBlockCode({
         className="absolute top-2 right-2 z-10 h-7 w-7 p-0 opacity-0 group-hover/code:opacity-100 transition-opacity duration-200"
         onClick={copyToClipboard}
       >
-        <Copy className="h-3 w-3" />
+        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
       </Button>
       {highlightedHtml ? (
         <div
