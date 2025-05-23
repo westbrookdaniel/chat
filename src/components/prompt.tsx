@@ -5,7 +5,7 @@ import {
   PromptInputActions,
 } from "@/components/ui/prompt-input";
 import { Button } from "./ui/button";
-import { ArrowUp, Brain, Globe, Square } from "lucide-react";
+import { ArrowUp, Brain, Square } from "lucide-react";
 import type { Options } from "@/db";
 import { cn } from "@/lib/utils";
 

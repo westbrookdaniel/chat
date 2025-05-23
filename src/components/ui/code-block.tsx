@@ -3,6 +3,8 @@
 import { cn } from "@/lib/utils";
 import React, { startTransition, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
+import { Button } from "./button";
+import { Copy } from "lucide-react";
 
 export type CodeBlockProps = {
   children?: React.ReactNode;
@@ -13,7 +15,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
   return (
     <div
       className={cn(
-        "not-prose flex w-full flex-col overflow-clip border",
+        "not-prose flex w-full flex-col overflow-clip border relative group",
         "border-border bg-card text-card-foreground rounded-xl",
         className,
       )}
@@ -51,23 +53,39 @@ function CodeBlockCode({
     highlight();
   }, [code, language, theme]);
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(code);
+  };
+
   const classNames = cn(
-    "w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4",
+    "w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4 relative",
     className,
   );
 
   // SSR fallback: render plain code if not hydrated yet
-  return highlightedHtml ? (
-    <div
-      className={classNames}
-      dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-      {...props}
-    />
-  ) : (
-    <div className={classNames} {...props}>
-      <pre>
-        <code>{code}</code>
-      </pre>
+  return (
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-2 right-2 z-10 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        onClick={copyToClipboard}
+      >
+        <Copy className="h-3 w-3" />
+      </Button>
+      {highlightedHtml ? (
+        <div
+          className={classNames}
+          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+          {...props}
+        />
+      ) : (
+        <div className={classNames} {...props}>
+          <pre>
+            <code>{code}</code>
+          </pre>
+        </div>
+      )}
     </div>
   );
 }

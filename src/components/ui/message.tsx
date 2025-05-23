@@ -7,8 +7,6 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
-import { useTextStream } from "./response-stream";
-import { useEffect } from "react";
 
 export type MessageProps = {
   children: React.ReactNode;

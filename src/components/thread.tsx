@@ -19,7 +19,8 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
 import { createMessage } from "@/app/util";
 import { Button } from "./ui/button";
-import { SettingsIcon } from "lucide-react";
+import { SettingsIcon, Copy, Edit, RotateCcw } from "lucide-react";
+import { MessageActions, MessageAction } from "./ui/message";
 
 export function ThreadView({
   user,
@@ -155,18 +156,53 @@ export function ThreadView({
 }
 
 function MessageDisplay({ message }: { message: UIMessage }) {
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
   if (message.role === "user") {
     return (
-      <Message className="justify-end">
-        <MessageContent className="whitespace-pre-wrap">
-          {message.content}
-        </MessageContent>
+      <Message className="justify-end group">
+        <div className="flex flex-col gap-2">
+          <MessageContent className="whitespace-pre-wrap">
+            {message.content}
+          </MessageContent>
+          <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
+            <MessageAction tooltip="Edit message">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Edit className="h-3 w-3" />
+              </Button>
+            </MessageAction>
+            <MessageAction tooltip="Copy message">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={() => copyToClipboard(message.content)}
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+            </MessageAction>
+            <MessageAction tooltip="Retry from here">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <RotateCcw className="h-3 w-3" />
+              </Button>
+            </MessageAction>
+          </MessageActions>
+        </div>
       </Message>
     );
   }
 
+  const getMessageText = () => {
+    return message.parts
+      .filter(part => part.type === "text")
+      .map(part => part.text)
+      .join("\n");
+  };
+
   return (
-    <Message className="justify-start">
+    <Message className="justify-start group">
       <div className="flex w-full flex-col gap-2">
         {message.parts.map((part, i) => {
           if (part.type === "text") {
@@ -202,6 +238,23 @@ function MessageDisplay({ message }: { message: UIMessage }) {
             );
           }
         })}
+        <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <MessageAction tooltip="Copy message">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0"
+              onClick={() => copyToClipboard(getMessageText())}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+          </MessageAction>
+          <MessageAction tooltip="Retry from here">
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <RotateCcw className="h-3 w-3" />
+            </Button>
+          </MessageAction>
+        </MessageActions>
       </div>
     </Message>
   );
