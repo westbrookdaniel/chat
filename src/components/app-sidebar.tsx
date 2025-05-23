@@ -1,6 +1,7 @@
 import {
   LogOut,
   MoreHorizontal,
+  Pencil,
   Plus,
   Search,
   Settings,
@@ -39,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "@/db";
 import { useTheme } from "next-themes";
+import { RenameThreadModal } from "./rename-thread-modal";
 
 export function AppSidebar({
   user,
@@ -54,6 +56,11 @@ export function AppSidebar({
   const queryClient = getQueryClient();
 
   const [search, setSearch] = useState("");
+  const [renameModal, setRenameModal] = useState<{
+    open: boolean;
+    threadId: string;
+    title: string;
+  }>({ open: false, threadId: "", title: "" });
 
   const fuse = new Fuse(user.threads, {
     keys: ["title"],
@@ -103,12 +110,18 @@ export function AppSidebar({
                       </SidebarMenuAction>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start">
-                      {/*
-                        <DropdownMenuItem>
-                          <Pencil />
-                          <span>Rename</span>
-                        </DropdownMenuItem>
-                      */}
+                      <DropdownMenuItem
+                        onClick={() =>
+                          setRenameModal({
+                            open: true,
+                            threadId: item.id,
+                            title: item.title,
+                          })
+                        }
+                      >
+                        <Pencil />
+                        <span>Rename</span>
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={async () => {
                           await deleteThread({ userId: user.id, id: item.id });
@@ -143,6 +156,14 @@ export function AppSidebar({
         </div>
       </SidebarFooter>
       <SidebarRail />
+      <RenameThreadModal
+        key={renameModal.threadId}
+        open={renameModal.open}
+        onOpenChange={(open) => setRenameModal((prev) => ({ ...prev, open }))}
+        threadId={renameModal.threadId}
+        currentTitle={renameModal.title}
+        user={user}
+      />
     </Sidebar>
   );
 }

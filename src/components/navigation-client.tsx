@@ -6,6 +6,8 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ConfigureModal } from "@/app/configure";
 import type { UserWithThreads } from "@/lib/session";
+import { useQuery } from "@tanstack/react-query";
+import { getUser } from "@/lib/thread";
 
 interface NavigationContextType {
   setActive: (threadId: string | null) => void;
@@ -28,9 +30,21 @@ interface NavigationClientProps {
   children: React.ReactNode;
 }
 
-export function NavigationClient({ user, active, children }: NavigationClientProps) {
+export function NavigationClient({
+  user: initialUser,
+  active,
+  children,
+}: NavigationClientProps) {
   const router = useRouter();
   const [configureOpen, setConfigureOpen] = useState(false);
+
+  const userQuery = useQuery({
+    queryKey: ["user", initialUser.id],
+    initialData: initialUser,
+    queryFn: () => getUser(initialUser.id),
+  });
+
+  const user = userQuery.data ?? initialUser;
 
   const setActive = (threadId: string | null) => {
     if (threadId) {
@@ -56,9 +70,7 @@ export function NavigationClient({ user, active, children }: NavigationClientPro
           setActive={setActive}
           onConfigure={onConfigure}
         />
-        <SidebarInset>
-          {children}
-        </SidebarInset>
+        <SidebarInset>{children}</SidebarInset>
         <ConfigureModal
           user={user}
           isOpen={configureOpen}
@@ -68,3 +80,4 @@ export function NavigationClient({ user, active, children }: NavigationClientPro
     </NavigationContext.Provider>
   );
 }
+
