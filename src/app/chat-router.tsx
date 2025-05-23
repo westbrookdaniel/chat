@@ -8,11 +8,19 @@ import { getUser } from "@/lib/thread";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ConfigureModal } from "./configure";
-import { BrowserRouter, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 
 // Using React Router for faster client-side navigation feel
 // instead of Next.js server-side routing
 export function ChatRouter({ user: initialUser }: { user: UserWithThreads }) {
+  // TODO how to fix error "document is not defined"?
   return (
     <BrowserRouter>
       <ChatRouterInner user={initialUser} />
@@ -24,7 +32,7 @@ function ChatRouterInner({ user: initialUser }: { user: UserWithThreads }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [configureOpen, setConfigureOpen] = useState(false);
-  
+
   const userQuery = useQuery({
     queryKey: ["user", initialUser.id],
     initialData: initialUser,
@@ -37,24 +45,24 @@ function ChatRouterInner({ user: initialUser }: { user: UserWithThreads }) {
     if (newThreadId) {
       navigate(`/chat/${newThreadId}`, { replace: false });
     } else {
-      navigate('/', { replace: false });
+      navigate("/", { replace: false });
     }
   };
 
   // Parse current route to determine active thread and props
   const getCurrentRouteInfo = () => {
-    if (location.pathname === '/') {
+    if (location.pathname === "/") {
       const params = new URLSearchParams(location.search);
       return {
         threadId: null,
         thread: undefined,
-        initialModel: params.get('model') || undefined,
-        initialMessage: params.get('q') || undefined,
+        initialModel: params.get("model") || undefined,
+        initialMessage: params.get("q") || undefined,
       };
     }
-    
-    if (location.pathname.startsWith('/chat/')) {
-      const threadId = location.pathname.split('/chat/')[1];
+
+    if (location.pathname.startsWith("/chat/")) {
+      const threadId = location.pathname.split("/chat/")[1];
       const thread = user.threads.find((t) => t.id === threadId);
       return {
         threadId,
@@ -72,7 +80,8 @@ function ChatRouterInner({ user: initialUser }: { user: UserWithThreads }) {
     };
   };
 
-  const { threadId, thread, initialModel, initialMessage } = getCurrentRouteInfo();
+  const { threadId, thread, initialModel, initialMessage } =
+    getCurrentRouteInfo();
 
   useEffect(() => {
     if (thread) {
@@ -92,8 +101,8 @@ function ChatRouterInner({ user: initialUser }: { user: UserWithThreads }) {
       />
       <SidebarInset>
         <Routes>
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               <ThreadView
                 key="new"
@@ -104,17 +113,17 @@ function ChatRouterInner({ user: initialUser }: { user: UserWithThreads }) {
                 initialModel={initialModel}
                 initialMessage={initialMessage}
               />
-            } 
+            }
           />
-          <Route 
-            path="/chat/:id" 
+          <Route
+            path="/chat/:id"
             element={
-              <ChatWithIdRoute 
+              <ChatWithIdRoute
                 user={user}
                 setActive={setActive}
                 onConfigure={() => setConfigureOpen(true)}
               />
-            } 
+            }
           />
         </Routes>
       </SidebarInset>
@@ -128,10 +137,10 @@ function ChatRouterInner({ user: initialUser }: { user: UserWithThreads }) {
   );
 }
 
-function ChatWithIdRoute({ 
-  user, 
-  setActive, 
-  onConfigure 
+function ChatWithIdRoute({
+  user,
+  setActive,
+  onConfigure,
 }: {
   user: UserWithThreads;
   setActive: (threadId: string | null) => void;
@@ -150,3 +159,4 @@ function ChatWithIdRoute({
     />
   );
 }
+
