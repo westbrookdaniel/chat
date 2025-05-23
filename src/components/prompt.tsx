@@ -80,7 +80,11 @@ export function Prompt({
         onSubmit={onSubmit}
         handleInputChange={handleInputChange}
       >
-        <PromptInputTextarea autoFocus placeholder="Ask chat" className="mb-2" />
+        <PromptInputTextarea
+          autoFocus
+          placeholder="Ask chat anything"
+          className="mb-2"
+        />
         <PromptInputActions className="gap-1">
           <ModelSelector
             model={options.model || "claude-4-sonnet-20250514"}

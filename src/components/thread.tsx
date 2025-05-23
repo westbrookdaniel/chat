@@ -115,7 +115,7 @@ export function ThreadView({
       {thread ? (
         <div className="flex flex-col flex-[1_1_auto] h-[1px]">
           <ChatContainer autoScroll className="flex-1 py-8">
-            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-8 lg:px-16">
+            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 lg:px-8 lg:px-16">
               {messages.map((message, i) => (
                 <MessageDisplay
                   key={i}
@@ -153,7 +153,7 @@ export function ThreadView({
           {getGreeting()}, {name}
         </p>
       )}
-      <div className="pb-8 px-8 lg:px-16 mx-auto w-full max-w-4xl">
+      <div className="pb-2 px-4 lg:px-8 lg:px-16 mx-auto w-full max-w-4xl">
         <Prompt
           onSubmit={async () => {
             if (!thread) {
@@ -193,6 +193,9 @@ export function ThreadView({
           files={files}
           onFilesChange={setFiles}
         />
+        <p className="mt-1 text-xs text-muted-foreground text-center">
+          Chat can make mistakes. Please check important info.
+        </p>
       </div>
     </div>
   );
@@ -318,7 +321,7 @@ function MessageDisplayInner({
               <MessageContent className="whitespace-pre-wrap">
                 {message.content}
               </MessageContent>
-              <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
+              <MessageActions className="lg:opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
                 <MessageAction tooltip="Edit message">
                   <Button
                     variant="ghost"
@@ -405,7 +408,7 @@ function MessageDisplayInner({
             );
           }
         })}
-        <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <MessageActions className="lg:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <MessageAction tooltip="Copy message">
             <Button
               variant="ghost"
