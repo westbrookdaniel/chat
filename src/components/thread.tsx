@@ -18,11 +18,25 @@ import {
 } from "@/components/ui/reasoning";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
-import { createMessage } from "@/app/util";
+import { createMessage } from "@/app/createMessage";
+import { FilePreviewList } from "./ui/file-preview";
 import { Button } from "./ui/button";
-import { SettingsIcon, Copy, Edit, RotateCcw, X, Check, Menu } from "lucide-react";
+import {
+  SettingsIcon,
+  Copy,
+  Edit,
+  RotateCcw,
+  X,
+  Check,
+  Menu,
+} from "lucide-react";
 import { MessageActions, MessageAction } from "./ui/message";
 import { SidebarTrigger, useSidebar } from "./ui/sidebar";
+
+export interface AttachedFile {
+  id: string;
+  file: File;
+}
 
 export function ThreadView({
   user,
@@ -41,9 +55,10 @@ export function ThreadView({
   const id = thread?.id ?? generateId();
 
   const [options, setOptions] = useState<Options>({
-    search: thread?.data.search ?? false,
     high: thread?.data.high ?? false,
   });
+
+  const [files, setFiles] = useState<AttachedFile[]>([]);
 
   const name = user.fullName ? user.fullName.split(" ")[0] : user.username;
 
@@ -67,10 +82,11 @@ export function ThreadView({
     },
   });
 
+  const debouncedReload = useMemo(() => debounce(reload, 200), [reload]);
+
   // Handle kicking off assitant on creation with first message
   // but we also need to dedupe for strict mode
   // debounce isn't ideal for this but it works for now
-  const debouncedReload = useMemo(() => debounce(reload, 100), [reload]);
   useEffect(() => {
     if (
       user.anthropicApiKey &&
@@ -106,7 +122,7 @@ export function ThreadView({
                   messageIndex={i}
                   messages={messages}
                   setMessages={setMessages}
-                  reload={reload}
+                  reload={debouncedReload}
                 />
               ))}
 
@@ -143,7 +159,11 @@ export function ThreadView({
             if (!thread) {
               const nextThread = await createThread({
                 userId: user.id,
-                messages: createMessage(input),
+                messages: await createMessage(
+                  input,
+                  files.length > 0 ? filesToFileList(files) : undefined,
+                ),
+
                 ...options,
               });
 
@@ -155,8 +175,13 @@ export function ThreadView({
               queryClient.setQueryData(["user", user.id], newUser);
 
               setActive(nextThread.id);
+              setFiles([]);
             } else {
-              handleSubmit();
+              handleSubmit(undefined, {
+                experimental_attachments:
+                  files.length > 0 ? filesToFileList(files) : undefined,
+              });
+              setFiles([]);
             }
           }}
           handleInputChange={handleInputChange}
@@ -165,6 +190,8 @@ export function ThreadView({
           stop={stop}
           options={options}
           setOptions={setOptions}
+          files={files}
+          onFilesChange={setFiles}
         />
       </div>
     </div>
@@ -228,6 +255,8 @@ function MessageDisplay({
   };
 
   if (message.role === "user") {
+    // Convert message attachments to AttachedFile format for display
+    const messageFiles = message.experimental_attachments ?? [];
     return (
       <Message className="justify-end group">
         <div className="flex items-end flex-col gap-2">
@@ -274,6 +303,9 @@ function MessageDisplay({
             </div>
           ) : (
             <>
+              {messageFiles.length > 0 && (
+                <FilePreviewList files={messageFiles} className="mb-2" />
+              )}
               <MessageContent className="whitespace-pre-wrap">
                 {message.content}
               </MessageContent>
@@ -295,7 +327,11 @@ function MessageDisplay({
                     className="h-7 w-7 p-0"
                     onClick={() => copyToClipboard(message.content)}
                   >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    {copied ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                   </Button>
                 </MessageAction>
                 <MessageAction tooltip="Retry from here">
@@ -368,7 +404,11 @@ function MessageDisplay({
               className="h-7 w-7 p-0"
               onClick={() => copyToClipboard(getMessageText())}
             >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {copied ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
             </Button>
           </MessageAction>
           <MessageAction tooltip="Retry from here">
@@ -397,4 +437,10 @@ function debounce<T extends (...args: any[]) => void>(
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delay);
   }) as T;
+}
+
+function filesToFileList(files: AttachedFile[]): FileList {
+  const dt = new DataTransfer();
+  files.forEach((f) => dt.items.add(f.file));
+  return dt.files;
 }

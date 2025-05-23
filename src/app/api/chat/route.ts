@@ -65,5 +65,11 @@ export async function POST(req: Request) {
     },
   });
 
-  return result.toDataStreamResponse({ sendReasoning: true });
+  return result.toDataStreamResponse({
+    sendReasoning: true,
+    sendUsage: true,
+    getErrorMessage: (error) => {
+      return error instanceof Error ? error.message : "An error occurred";
+    },
+  });
 }

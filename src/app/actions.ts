@@ -20,14 +20,12 @@ export async function logoutAction() {
 export async function createThread({
   userId,
   messages,
-  search,
   high,
 }: {
   userId: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages?: any[];
   high?: boolean;
-  search?: boolean;
 }) {
   const result = await db
     .insert(threadTable)
@@ -37,7 +35,6 @@ export async function createThread({
       data: {
         messages: messages ?? [],
         high,
-        search,
       },
     })
     .returning();

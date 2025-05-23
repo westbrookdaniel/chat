@@ -31,5 +31,4 @@ export type Thread = InferSelectModel<typeof threadTable>;
 
 export type Options = {
   high?: boolean;
-  search?: boolean;
 };

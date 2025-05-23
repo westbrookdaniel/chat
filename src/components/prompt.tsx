@@ -5,9 +5,12 @@ import {
   PromptInputActions,
 } from "@/components/ui/prompt-input";
 import { Button } from "./ui/button";
-import { ArrowUp, Brain, Square } from "lucide-react";
+import { ArrowUp, Brain, Square, Paperclip } from "lucide-react";
 import type { Options } from "@/db";
 import { cn } from "@/lib/utils";
+import { FilePreviewList } from "./ui/file-preview";
+import { useRef } from "react";
+import type { AttachedFile } from "./thread";
 
 export function Prompt({
   value,
@@ -17,6 +20,8 @@ export function Prompt({
   stop,
   options,
   setOptions,
+  files,
+  onFilesChange,
 }: {
   value: string;
   onSubmit: () => void;
@@ -25,60 +30,92 @@ export function Prompt({
   stop: () => void;
   options: Options;
   setOptions: React.Dispatch<React.SetStateAction<Options>>;
+  files: AttachedFile[];
+  onFilesChange: (files: AttachedFile[]) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files || []);
+    if (selectedFiles.length > 0) {
+      const attachedFiles: AttachedFile[] = selectedFiles.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+      }));
+      onFilesChange([...files, ...attachedFiles]);
+    }
+    // Reset the input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveFile = (id: string) => {
+    onFilesChange(files.filter((f) => f.id !== id));
+  };
+
   return (
-    <PromptInput
-      value={value}
-      onSubmit={onSubmit}
-      handleInputChange={handleInputChange}
-    >
-      <PromptInputTextarea autoFocus placeholder="Ask chat" />
-      <PromptInputActions className="gap-1">
-        {/*
-        <PromptInputAction tooltip="Upload File">
-          <Button className="rounded-full" size="icon" variant="ghost">
-            <Paperclip />
+    <div>
+      {files.length > 0 && (
+        <div className="mb-2">
+          <FilePreviewList files={files} onRemove={handleRemoveFile} />
+        </div>
+      )}
+      <PromptInput
+        value={value}
+        onSubmit={onSubmit}
+        handleInputChange={handleInputChange}
+      >
+        <PromptInputTextarea autoFocus placeholder="Ask chat" />
+        <PromptInputActions className="gap-1">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,application/pdf,text/*,.md,.txt,.json,.csv"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <PromptInputAction tooltip="Upload File">
+            <Button
+              className="rounded-full"
+              size="icon"
+              variant="ghost"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Paperclip />
+            </Button>
+          </PromptInputAction>
+          <ExpandingButton
+            enabled={!!options.high}
+            toggle={() => setOptions((p) => ({ ...p, high: !p.high }))}
+            label="Opus"
+            Icon={Brain}
+            width={84}
+          />
+          <div className="flex-1" />
+          <Button
+            disabled={status !== "ready" && status !== "streaming"}
+            className="rounded-full"
+            size="icon"
+            onClick={
+              status === "streaming"
+                ? (e) => {
+                    e.preventDefault();
+                    stop();
+                  }
+                : onSubmit
+            }
+          >
+            {status === "streaming" ? (
+              <Square className="size-5 fill-current" />
+            ) : (
+              <ArrowUp className="size-5" />
+            )}
           </Button>
-        </PromptInputAction>
-        */}
-        <ExpandingButton
-          enabled={!!options.high}
-          toggle={() => setOptions((p) => ({ ...p, high: !p.high }))}
-          label="Opus"
-          Icon={Brain}
-          width={84}
-        />
-        {/*
-        <ExpandingButton
-          enabled={!!options.search}
-          toggle={() => setOptions((p) => ({ ...p, search: !p.search }))}
-          label="Search"
-          Icon={Globe}
-          width={98}
-        />
-        */}
-        <div className="flex-1" />
-        <Button
-          disabled={status !== "ready" && status !== "streaming"}
-          className="rounded-full"
-          size="icon"
-          onClick={
-            status === "streaming"
-              ? (e) => {
-                  e.preventDefault();
-                  stop();
-                }
-              : onSubmit
-          }
-        >
-          {status === "streaming" ? (
-            <Square className="size-5 fill-current" />
-          ) : (
-            <ArrowUp className="size-5" />
-          )}
-        </Button>
-      </PromptInputActions>
-    </PromptInput>
+        </PromptInputActions>
+      </PromptInput>
+    </div>
   );
 }
 
