@@ -84,14 +84,14 @@ function ReasoningTrigger({
       onClick={() => onOpenChange(!isOpen)}
       {...props}
     >
-      <span className="text-primary">{children}</span>
+      <span className="text-muted-foreground">{children}</span>
       <div
         className={cn(
           "transform transition-transform duration-300",
           isOpen ? "rotate-180" : "",
         )}
       >
-        <ChevronDownIcon className="size-4 text-primary" />
+        <ChevronDownIcon className="size-4 text-muted-foreground" />
       </div>
     </button>
   );

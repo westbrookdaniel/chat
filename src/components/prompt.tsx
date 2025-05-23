@@ -175,7 +175,6 @@ function ExpandingButton({
       <Button
         className={cn(
           "rounded-full transition-all duration-300 overflow-hidden relative",
-          enabled && "bg-secondary",
         )}
         style={{ width: enabled ? `${width}px` : "36px" }}
         size={enabled ? "default" : "icon"}
