@@ -1,0 +1,32 @@
+import { redirect, notFound } from "next/navigation";
+import { getCurrentSession } from "@/lib/session";
+import { NavigationClient } from "@/components/navigation-client";
+import { ThreadViewWrapper } from "@/components/thread-wrapper";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function ChatPage({ params }: PageProps) {
+  const { user } = await getCurrentSession();
+
+  if (user === null) {
+    return redirect("/login");
+  }
+
+  const { id } = await params;
+  const thread = user.threads.find((t) => t.id === id);
+
+  if (!thread) {
+    return notFound();
+  }
+
+  return (
+    <NavigationClient user={user} active={id}>
+      <ThreadViewWrapper
+        user={user}
+        thread={thread}
+      />
+    </NavigationClient>
+  );
+}
