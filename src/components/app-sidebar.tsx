@@ -36,8 +36,8 @@ export function AppSidebar({
   setActive,
 }: {
   user: UserWithThreads;
-  active: { id: string; prompt?: string } | null;
-  setActive: (input: { id: string; prompt?: string } | null) => void;
+  active: string | null;
+  setActive: (active: string | null) => void;
 }) {
   const queryClient = getQueryClient();
 
@@ -77,8 +77,8 @@ export function AppSidebar({
               {filteredThreads.map((item) => (
                 <SidebarMenuItem key={item.id} className="group/item">
                   <SidebarMenuButton
-                    onClick={() => setActive({ id: item.id })}
-                    isActive={active?.id === item.id}
+                    onClick={() => setActive(item.id)}
+                    isActive={active === item.id}
                     className="px-3"
                   >
                     <span>{item.title}</span>
@@ -204,7 +204,7 @@ function NavUser({ user }: { user: User }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? "bottom" : "top"}
             align="end"
             sideOffset={4}
           >

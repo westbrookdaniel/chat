@@ -17,11 +17,9 @@ export function Chat({ user: initialUser }: { user: UserWithThreads }) {
 
   const user = userQuery.data ?? initialUser;
 
-  const [active, setActive] = useState<null | { id: string; prompt?: string }>(
-    null,
-  );
+  const [active, setActive] = useState<null | string>(null);
 
-  const thread = user.threads.find((t) => t.id === active?.id);
+  const thread = user.threads.find((t) => t.id === active);
 
   useEffect(() => {
     if (thread) {
@@ -36,10 +34,9 @@ export function Chat({ user: initialUser }: { user: UserWithThreads }) {
       <AppSidebar user={user} active={active} setActive={setActive} />
       <SidebarInset>
         <ThreadView
-          key={thread?.id}
+          key={active}
           user={user}
           thread={thread}
-          active={active}
           setActive={setActive}
         />
       </SidebarInset>

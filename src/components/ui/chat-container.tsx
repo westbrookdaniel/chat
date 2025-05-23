@@ -198,7 +198,7 @@ function ChatContainer({
 
     const scrollHandler = () => {
       if (newMessageAdded) {
-        scrollToBottom("smooth");
+        scrollToBottom("auto");
         setNewMessageAdded(false);
         contentChangedWithoutNewMessageRef.current = false;
       } else if (
@@ -207,7 +207,7 @@ function ChatContainer({
         !isScrolling &&
         !scrollTriggered
       ) {
-        scrollToBottom("smooth");
+        scrollToBottom("auto");
         contentChangedWithoutNewMessageRef.current = false;
       }
     };

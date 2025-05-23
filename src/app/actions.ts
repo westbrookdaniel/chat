@@ -9,7 +9,6 @@ import {
 import { redirect } from "next/navigation";
 
 export async function logoutAction() {
-  "use server";
   const { session } = await getCurrentSession();
   if (!session) return;
 

@@ -7,7 +7,7 @@ import { ChatContainer } from "./ui/chat-container";
 import { createThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { UserWithThreads } from "@/lib/session";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Options } from "@/db";
 import {
   Reasoning,
@@ -17,19 +17,20 @@ import {
 } from "@/components/ui/reasoning";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
+import { createMessage } from "@/app/util";
 
 export function ThreadView({
   user,
   thread,
-  active,
   setActive,
 }: {
   user: UserWithThreads;
-  thread?: Thread;
-  active: { id: string; prompt?: string } | null;
-  setActive: (input: { id: string; prompt?: string } | null) => void;
+  thread: Thread | undefined;
+  setActive: (active: string | null) => void;
 }) {
   const queryClient = getQueryClient();
+
+  const id = thread?.id ?? generateId();
 
   const [options, setOptions] = useState<Options>({
     search: thread?.data.search ?? false,
@@ -37,7 +38,6 @@ export function ThreadView({
   });
 
   const name = user.fullName ? user.fullName.split(" ")[0] : user.username;
-  const id = thread?.id ?? generateId();
 
   const {
     messages,
@@ -47,10 +47,10 @@ export function ThreadView({
     handleInputChange,
     status,
     handleSubmit,
+    reload,
   } = useChat({
     id,
     initialMessages: thread?.data.messages,
-    initialInput: active?.prompt,
     body: options,
     sendExtraMessageFields: true,
     onFinish() {
@@ -58,10 +58,27 @@ export function ThreadView({
     },
   });
 
+  // Handle kicking off assitant on creation with first message
+  // but we also need to dedupe for strict mode
+  // debounce isn't ideal for this but it works for now
+  const reloadTimeout = useRef<NodeJS.Timeout | null>(null);
+  const debouncedReload = useCallback(() => {
+    if (reloadTimeout.current) {
+      clearTimeout(reloadTimeout.current);
+    }
+    reloadTimeout.current = setTimeout(() => {
+      reload();
+    }, 100);
+  }, [reload]);
   useEffect(() => {
-    if (active?.prompt) handleSubmit();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active?.prompt]);
+    if (
+      status === "ready" &&
+      messages.length === 1 &&
+      messages[0].role === "user"
+    ) {
+      debouncedReload();
+    }
+  }, [debouncedReload, messages, status]);
 
   return (
     <div
@@ -98,7 +115,7 @@ export function ThreadView({
             if (!thread) {
               const nextThread = await createThread({
                 userId: user.id,
-                messages: [],
+                messages: createMessage(input),
                 ...options,
               });
 
@@ -109,7 +126,7 @@ export function ThreadView({
 
               queryClient.setQueryData(["user", user.id], newUser);
 
-              setActive({ id: nextThread.id, prompt: input });
+              setActive(nextThread.id);
             } else {
               handleSubmit();
             }
