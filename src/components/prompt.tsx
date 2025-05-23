@@ -83,7 +83,7 @@ export function Prompt({
         <PromptInputTextarea
           autoFocus
           placeholder="Ask chat anything"
-          className="mb-2"
+          className="mb-2 dark:bg-transperant"
         />
         <PromptInputActions className="gap-1">
           <ModelSelector
