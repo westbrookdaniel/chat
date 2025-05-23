@@ -7,7 +7,7 @@ import { ChatContainer } from "./ui/chat-container";
 import { createThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { UserWithThreads } from "@/lib/session";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { Textarea } from "./ui/textarea";
 import type { Options } from "@/db";
 import {
@@ -120,7 +120,6 @@ export function ThreadView({
                   key={i}
                   message={message}
                   messageIndex={i}
-                  messages={messages}
                   setMessages={setMessages}
                   reload={debouncedReload}
                 />
@@ -198,17 +197,27 @@ export function ThreadView({
   );
 }
 
-function MessageDisplay({
+const MessageDisplay = memo(MessageDisplayInner, (prev, next) => {
+  return (
+    // fix message check
+    prev.message.content === next.message.content &&
+    prev.messageIndex === next.messageIndex &&
+    prev.reload === next.reload &&
+    prev.setMessages === next.setMessages
+  );
+});
+
+function MessageDisplayInner({
   message,
   messageIndex,
-  messages,
   setMessages,
   reload,
 }: {
   message: UIMessage;
   messageIndex: number;
-  messages: UIMessage[];
-  setMessages: (messages: UIMessage[]) => void;
+  setMessages: (
+    fn: (prev: Omit<UIMessage, "parts">[]) => Omit<UIMessage, "parts">[],
+  ) => void;
   reload: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -227,15 +236,16 @@ function MessageDisplay({
   };
 
   const handleSaveEdit = () => {
-    const updatedMessages = [...messages];
-    updatedMessages[messageIndex] = {
-      ...message,
-      content: editValue,
-    };
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[messageIndex] = {
+        ...updated[messageIndex],
+        content: editValue,
+      };
 
-    // Slice messages up to and including the edited message
-    const slicedMessages = updatedMessages.slice(0, messageIndex + 1);
-    setMessages(slicedMessages);
+      // Slice messages up to and including the edited message
+      return updated.slice(0, messageIndex + 1);
+    });
     setIsEditing(false);
 
     // Reload to continue conversation from this point
@@ -248,9 +258,7 @@ function MessageDisplay({
   };
 
   const handleRetry = () => {
-    // Slice messages up to this message (excluding it) and reload
-    const slicedMessages = messages.slice(0, messageIndex);
-    setMessages(slicedMessages);
+    setMessages((prev) => prev.slice(0, messageIndex));
     setTimeout(() => reload(), 100);
   };
 
