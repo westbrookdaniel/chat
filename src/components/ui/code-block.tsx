@@ -68,7 +68,7 @@ function CodeBlockCode({
       <Button
         variant="ghost"
         size="sm"
-        className="absolute top-2 right-2 z-10 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        className="absolute top-2 right-2 z-10 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         onClick={copyToClipboard}
       >
         <Copy className="h-3 w-3" />

@@ -8,6 +8,7 @@ import { createThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { UserWithThreads } from "@/lib/session";
 import { useEffect, useMemo, useState } from "react";
+import { Textarea } from "./ui/textarea";
 import type { Options } from "@/db";
 import {
   Reasoning,
@@ -19,7 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
 import { createMessage } from "@/app/util";
 import { Button } from "./ui/button";
-import { SettingsIcon, Copy, Edit, RotateCcw } from "lucide-react";
+import { SettingsIcon, Copy, Edit, RotateCcw, X, Check } from "lucide-react";
 import { MessageActions, MessageAction } from "./ui/message";
 
 export function ThreadView({
@@ -53,6 +54,7 @@ export function ThreadView({
     status,
     handleSubmit,
     reload,
+    setMessages,
   } = useChat({
     id,
     initialMessages: thread?.data.messages,
@@ -91,7 +93,14 @@ export function ThreadView({
           <ChatContainer autoScroll className="flex-1 py-8">
             <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-8 lg:px-16">
               {messages.map((message, i) => (
-                <MessageDisplay key={i} message={message} />
+                <MessageDisplay 
+                  key={i} 
+                  message={message} 
+                  messageIndex={i}
+                  messages={messages}
+                  setMessages={setMessages}
+                  reload={reload}
+                />
               ))}
 
               {!user.anthropicApiKey ? (
@@ -155,40 +164,143 @@ export function ThreadView({
   );
 }
 
-function MessageDisplay({ message }: { message: UIMessage }) {
+function MessageDisplay({ 
+  message, 
+  messageIndex, 
+  messages, 
+  setMessages, 
+  reload 
+}: { 
+  message: UIMessage;
+  messageIndex: number;
+  messages: UIMessage[];
+  setMessages: (messages: UIMessage[]) => void;
+  reload: () => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(message.content);
+  
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+  
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditValue(message.content);
+  };
+  
+  const handleSaveEdit = () => {
+    const updatedMessages = [...messages];
+    updatedMessages[messageIndex] = {
+      ...message,
+      content: editValue,
+    };
+    
+    // Slice messages up to and including the edited message
+    const slicedMessages = updatedMessages.slice(0, messageIndex + 1);
+    setMessages(slicedMessages);
+    setIsEditing(false);
+    
+    // Reload to continue conversation from this point
+    setTimeout(() => reload(), 100);
+  };
+  
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditValue(message.content);
+  };
+  
+  const handleRetry = () => {
+    // Slice messages up to this message (excluding it) and reload
+    const slicedMessages = messages.slice(0, messageIndex);
+    setMessages(slicedMessages);
+    setTimeout(() => reload(), 100);
   };
 
   if (message.role === "user") {
     return (
       <Message className="justify-end group">
         <div className="flex flex-col gap-2">
-          <MessageContent className="whitespace-pre-wrap">
-            {message.content}
-          </MessageContent>
-          <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
-            <MessageAction tooltip="Edit message">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Edit className="h-3 w-3" />
-              </Button>
-            </MessageAction>
-            <MessageAction tooltip="Copy message">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-6 w-6 p-0"
-                onClick={() => copyToClipboard(message.content)}
-              >
-                <Copy className="h-3 w-3" />
-              </Button>
-            </MessageAction>
-            <MessageAction tooltip="Retry from here">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <RotateCcw className="h-3 w-3" />
-              </Button>
-            </MessageAction>
-          </MessageActions>
+          {isEditing ? (
+            <div className="flex flex-col gap-2">
+              <Textarea
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="min-h-[80px] resize-none"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleSaveEdit();
+                  }
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    handleCancelEdit();
+                  }
+                }}
+                autoFocus
+              />
+              <MessageActions className="justify-end">
+                <MessageAction tooltip="Save (Ctrl+Enter)">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0"
+                    onClick={handleSaveEdit}
+                  >
+                    <Check className="h-3 w-3" />
+                  </Button>
+                </MessageAction>
+                <MessageAction tooltip="Cancel (Esc)">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0"
+                    onClick={handleCancelEdit}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </MessageAction>
+              </MessageActions>
+            </div>
+          ) : (
+            <>
+              <MessageContent className="whitespace-pre-wrap">
+                {message.content}
+              </MessageContent>
+              <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
+                <MessageAction tooltip="Edit message">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0"
+                    onClick={handleEdit}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </MessageAction>
+                <MessageAction tooltip="Copy message">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0"
+                    onClick={() => copyToClipboard(message.content)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </MessageAction>
+                <MessageAction tooltip="Retry from here">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0"
+                    onClick={handleRetry}
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                  </Button>
+                </MessageAction>
+              </MessageActions>
+            </>
+          )}
         </div>
       </Message>
     );
@@ -243,14 +355,19 @@ function MessageDisplay({ message }: { message: UIMessage }) {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 w-6 p-0"
+              className="h-7 w-7 p-0"
               onClick={() => copyToClipboard(getMessageText())}
             >
               <Copy className="h-3 w-3" />
             </Button>
           </MessageAction>
           <MessageAction tooltip="Retry from here">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 w-7 p-0"
+              onClick={handleRetry}
+            >
               <RotateCcw className="h-3 w-3" />
             </Button>
           </MessageAction>
