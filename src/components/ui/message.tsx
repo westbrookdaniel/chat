@@ -102,7 +102,7 @@ const MessageAction = ({
   tooltip,
   children,
   className,
-  side = "top",
+  side = "bottom",
   ...props
 }: MessageActionProps) => {
   return (

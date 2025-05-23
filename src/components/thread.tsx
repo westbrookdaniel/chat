@@ -93,9 +93,9 @@ export function ThreadView({
           <ChatContainer autoScroll className="flex-1 py-8">
             <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-8 lg:px-16">
               {messages.map((message, i) => (
-                <MessageDisplay 
-                  key={i} 
-                  message={message} 
+                <MessageDisplay
+                  key={i}
+                  message={message}
                   messageIndex={i}
                   messages={messages}
                   setMessages={setMessages}
@@ -164,13 +164,13 @@ export function ThreadView({
   );
 }
 
-function MessageDisplay({ 
-  message, 
-  messageIndex, 
-  messages, 
-  setMessages, 
-  reload 
-}: { 
+function MessageDisplay({
+  message,
+  messageIndex,
+  messages,
+  setMessages,
+  reload,
+}: {
   message: UIMessage;
   messageIndex: number;
   messages: UIMessage[];
@@ -179,37 +179,37 @@ function MessageDisplay({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(message.content);
-  
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
-  
+
   const handleEdit = () => {
     setIsEditing(true);
     setEditValue(message.content);
   };
-  
+
   const handleSaveEdit = () => {
     const updatedMessages = [...messages];
     updatedMessages[messageIndex] = {
       ...message,
       content: editValue,
     };
-    
+
     // Slice messages up to and including the edited message
     const slicedMessages = updatedMessages.slice(0, messageIndex + 1);
     setMessages(slicedMessages);
     setIsEditing(false);
-    
+
     // Reload to continue conversation from this point
     setTimeout(() => reload(), 100);
   };
-  
+
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditValue(message.content);
   };
-  
+
   const handleRetry = () => {
     // Slice messages up to this message (excluding it) and reload
     const slicedMessages = messages.slice(0, messageIndex);
@@ -220,13 +220,13 @@ function MessageDisplay({
   if (message.role === "user") {
     return (
       <Message className="justify-end group">
-        <div className="flex flex-col gap-2">
+        <div className="flex items-end flex-col gap-2">
           {isEditing ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex items-end flex-col gap-2">
               <Textarea
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                className="min-h-[80px] resize-none"
+                className="min-h-auto resize-none field-sizing-content"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
@@ -241,9 +241,9 @@ function MessageDisplay({
               />
               <MessageActions className="justify-end">
                 <MessageAction tooltip="Save (Ctrl+Enter)">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-7 w-7 p-0"
                     onClick={handleSaveEdit}
                   >
@@ -251,9 +251,9 @@ function MessageDisplay({
                   </Button>
                 </MessageAction>
                 <MessageAction tooltip="Cancel (Esc)">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-7 w-7 p-0"
                     onClick={handleCancelEdit}
                   >
@@ -269,9 +269,9 @@ function MessageDisplay({
               </MessageContent>
               <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
                 <MessageAction tooltip="Edit message">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-7 w-7 p-0"
                     onClick={handleEdit}
                   >
@@ -279,9 +279,9 @@ function MessageDisplay({
                   </Button>
                 </MessageAction>
                 <MessageAction tooltip="Copy message">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-7 w-7 p-0"
                     onClick={() => copyToClipboard(message.content)}
                   >
@@ -289,9 +289,9 @@ function MessageDisplay({
                   </Button>
                 </MessageAction>
                 <MessageAction tooltip="Retry from here">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-7 w-7 p-0"
                     onClick={handleRetry}
                   >
@@ -308,8 +308,8 @@ function MessageDisplay({
 
   const getMessageText = () => {
     return message.parts
-      .filter(part => part.type === "text")
-      .map(part => part.text)
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
       .join("\n");
   };
 
@@ -352,9 +352,9 @@ function MessageDisplay({
         })}
         <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <MessageAction tooltip="Copy message">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="h-7 w-7 p-0"
               onClick={() => copyToClipboard(getMessageText())}
             >
@@ -362,9 +362,9 @@ function MessageDisplay({
             </Button>
           </MessageAction>
           <MessageAction tooltip="Retry from here">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="h-7 w-7 p-0"
               onClick={handleRetry}
             >
