@@ -142,7 +142,7 @@ export function ThreadView({
       {thread ? (
         <div className="flex flex-col flex-[1_1_auto] h-[1px]">
           <ChatContainer autoScroll className="flex-1 py-8">
-            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 lg:px-8 lg:px-16">
+            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 md:px-8 lg:px-16">
               {messages.map((message, i) => (
                 <MessageDisplay
                   key={i}
@@ -180,7 +180,7 @@ export function ThreadView({
           {getGreeting()}, {name}
         </p>
       )}
-      <div className="pb-2 px-4 lg:px-8 lg:px-16 mx-auto w-full max-w-4xl">
+      <div className="pb-2 px-4 md:px-8 lg:px-16 mx-auto w-full max-w-4xl">
         <Prompt
           onSubmit={async () => {
             if (!thread) {
