@@ -1,7 +1,7 @@
 import { generateId } from "ai";
 import { prepareAttachmentsForRequest } from "./prepare";
 
-export async function createMessage(
+export async function createInitialMessage(
   content: string,
   files: FileList | undefined,
 ) {
@@ -17,6 +17,9 @@ export async function createMessage(
       experimental_attachments: files
         ? await prepareAttachmentsForRequest(files)
         : undefined,
+
+      // Add internal indicator that this is the first message
+      __initial: true,
     },
   ];
 }

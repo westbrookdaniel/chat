@@ -41,6 +41,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { User } from "@/db";
 import { useTheme } from "next-themes";
 import { RenameThreadModal } from "./rename-thread-modal";
+import { useRouter } from "next/navigation";
 
 export function AppSidebar({
   user,
@@ -53,6 +54,7 @@ export function AppSidebar({
   setActive: (active: string | null) => void;
   onConfigure: () => void;
 }) {
+  const router = useRouter();
   const queryClient = getQueryClient();
 
   const [search, setSearch] = useState("");
@@ -134,6 +136,10 @@ export function AppSidebar({
                           };
 
                           queryClient.setQueryData(["user", user.id], newUser);
+
+                          if (active === item.id) {
+                            router.push("/");
+                          }
                         }}
                       >
                         <Trash />

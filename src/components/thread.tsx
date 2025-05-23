@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/reasoning";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
-import { createMessage } from "@/app/createMessage";
+import { createInitialMessage } from "@/app/createInitialMessage";
 import { FilePreviewList } from "./ui/file-preview";
 import { Button } from "./ui/button";
 import {
@@ -110,7 +110,7 @@ export function ThreadView({
     }
   }, [thread, initialMessage, input, setInput]);
 
-  const debouncedReload = useMemo(() => debounce(reload, 200), [reload]);
+  const debouncedReload = useMemo(() => debounce(reload, 10), [reload]);
 
   // Handle kicking off assitant on creation with first message
   // but we also need to dedupe for strict mode
@@ -120,7 +120,8 @@ export function ThreadView({
       user.anthropicApiKey &&
       status === "ready" &&
       messages.length === 1 &&
-      messages[0].role === "user"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (messages[0] as any).__initial === true
     ) {
       debouncedReload();
     }
@@ -186,7 +187,7 @@ export function ThreadView({
             if (!thread) {
               const nextThread = await createThread({
                 userId: user.id,
-                messages: await createMessage(
+                messages: await createInitialMessage(
                   input,
                   files.length > 0 ? filesToFileList(files) : undefined,
                 ),
@@ -269,10 +270,22 @@ function MessageDisplayInner({
   const handleSaveEdit = () => {
     setMessages((prev) => {
       const updated = [...prev];
-      updated[messageIndex] = {
-        ...updated[messageIndex],
-        content: editValue,
+
+      const prevMessage = updated[messageIndex] as UIMessage & {
+        __initial?: boolean;
       };
+
+      // Delete internal indicator
+      delete prevMessage.__initial;
+
+      updated[messageIndex] = {
+        ...prevMessage,
+        parts: prevMessage.parts.map((part) =>
+          part.type === "text" ? { ...part, text: editValue } : part,
+        ),
+        content: editValue,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
 
       // Slice messages up to and including the edited message
       return updated.slice(0, messageIndex + 1);
@@ -378,7 +391,7 @@ function MessageDisplayInner({
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    onClick={handleRetry}
+                    onClick={reload}
                   >
                     <RotateCcw className="h-3 w-3" />
                   </Button>
