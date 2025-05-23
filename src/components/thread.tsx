@@ -20,8 +20,9 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
 import { createMessage } from "@/app/util";
 import { Button } from "./ui/button";
-import { SettingsIcon, Copy, Edit, RotateCcw, X, Check } from "lucide-react";
+import { SettingsIcon, Copy, Edit, RotateCcw, X, Check, Menu } from "lucide-react";
 import { MessageActions, MessageAction } from "./ui/message";
+import { SidebarTrigger, useSidebar } from "./ui/sidebar";
 
 export function ThreadView({
   user,
@@ -35,6 +36,7 @@ export function ThreadView({
   onConfigure: () => void;
 }) {
   const queryClient = getQueryClient();
+  const { isMobile } = useSidebar();
 
   const id = thread?.id ?? generateId();
 
@@ -84,10 +86,15 @@ export function ThreadView({
     <div
       className={
         thread
-          ? "flex flex-col h-full"
-          : "flex flex-col h-full items-center justify-center"
+          ? "flex flex-col h-full relative"
+          : "flex flex-col h-full items-center justify-center relative"
       }
     >
+      {isMobile && (
+        <SidebarTrigger className="fixed top-4 left-4 z-50 h-10 w-10 rounded-full bg-background border shadow-md hover:shadow-lg transition-shadow">
+          <Menu className="h-5 w-5" />
+        </SidebarTrigger>
+      )}
       {thread ? (
         <div className="flex flex-col flex-[1_1_auto] h-[1px]">
           <ChatContainer autoScroll className="flex-1 py-8">
