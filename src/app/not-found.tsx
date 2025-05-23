@@ -1,5 +1,6 @@
 import { NavigationClient } from "@/components/navigation-client";
 import { getCurrentSession } from "@/lib/session";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function NotFound() {
@@ -9,8 +10,11 @@ export default async function NotFound() {
     return redirect("/login");
   }
 
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+
   return (
-    <NavigationClient user={user} active={null}>
+    <NavigationClient user={user} active={null} defaultOpen={defaultOpen}>
       <NotFoundInner />
     </NavigationClient>
   );
@@ -34,4 +38,3 @@ function NotFoundInner() {
     </div>
   );
 }
-

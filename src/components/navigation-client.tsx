@@ -28,12 +28,14 @@ interface NavigationClientProps {
   user: UserWithThreads;
   active: string | null;
   children: React.ReactNode;
+  defaultOpen: boolean;
 }
 
 export function NavigationClient({
   user: initialUser,
   active,
   children,
+  defaultOpen,
 }: NavigationClientProps) {
   const router = useRouter();
   const [configureOpen, setConfigureOpen] = useState(false);
@@ -63,7 +65,7 @@ export function NavigationClient({
 
   return (
     <NavigationContext.Provider value={navigationValue}>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar
           user={user}
           active={active}
@@ -80,4 +82,3 @@ export function NavigationClient({
     </NavigationContext.Provider>
   );
 }
-
