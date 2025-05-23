@@ -125,4 +125,8 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+
+  .shiki.github-dark {
+    @apply bg-input/30!;
+  }
 }

@@ -5,6 +5,7 @@ import React, { startTransition, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { Button } from "./button";
 import { Copy, Check } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export type CodeBlockProps = {
   children?: React.ReactNode;
@@ -29,19 +30,27 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
 export type CodeBlockCodeProps = {
   code: string;
   language?: string;
-  theme?: string;
   className?: string;
 } & React.HTMLProps<HTMLDivElement>;
 
 function CodeBlockCode({
   code,
   language = "tsx",
-  theme = "github-light",
   className,
   ...props
 }: CodeBlockCodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const { theme: currentTheme = "system" } = useTheme();
+  const computedTheme =
+    currentTheme === "system"
+      ? typeof window !== "undefined" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"
+      : currentTheme;
+  const theme = computedTheme === "dark" ? "github-dark" : "github-light";
 
   useEffect(() => {
     async function highlight() {
