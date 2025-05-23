@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/session";
-import { Chat } from "./chat";
+import { ChatRouter } from "../chat-router";
 
 export default async function Page() {
   const { user } = await getCurrentSession();
@@ -9,5 +9,5 @@ export default async function Page() {
     return redirect("/login");
   }
 
-  return <Chat user={user} />;
+  return <ChatRouter user={user} />;
 }

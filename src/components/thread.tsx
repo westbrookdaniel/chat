@@ -38,16 +38,26 @@ export interface AttachedFile {
   file: File;
 }
 
+const VALID_MODELS = ["claude-4-sonnet-20250514", "claude-4-opus-20250514", "claude-3-5-sonnet-20241022", "claude-3-7-sonnet-20241217"] as const;
+
+function isValidModel(model: string | undefined): model is (typeof VALID_MODELS)[number] {
+  return !!model && (VALID_MODELS as readonly string[]).includes(model);
+}
+
 export function ThreadView({
   user,
   thread,
   setActive,
   onConfigure,
+  initialModel,
+  initialMessage,
 }: {
   user: UserWithThreads;
   thread: Thread | undefined;
   setActive: (active: string | null) => void;
   onConfigure: () => void;
+  initialModel?: string;
+  initialMessage?: string;
 }) {
   const queryClient = getQueryClient();
   const { isMobile } = useSidebar();
@@ -56,7 +66,7 @@ export function ThreadView({
 
   const [options, setOptions] = useState<Options>({
     thinking: thread?.data.thinking ?? false,
-    model: thread?.data.model ?? "claude-4-sonnet-20250514",
+    model: thread?.data.model ?? (isValidModel(initialModel) ? initialModel : "claude-4-sonnet-20250514"),
   });
 
   const [files, setFiles] = useState<AttachedFile[]>([]);
@@ -73,6 +83,7 @@ export function ThreadView({
     handleSubmit,
     reload,
     setMessages,
+    setInput,
   } = useChat({
     id,
     initialMessages: thread?.data.messages,
@@ -82,6 +93,13 @@ export function ThreadView({
       queryClient.invalidateQueries({ queryKey: ["user", user.id] });
     },
   });
+
+  // Set initial message when component mounts for new chats
+  useEffect(() => {
+    if (!thread && initialMessage && input === "") {
+      setInput(initialMessage);
+    }
+  }, [thread, initialMessage, input, setInput]);
 
   const debouncedReload = useMemo(() => debounce(reload, 200), [reload]);
 
