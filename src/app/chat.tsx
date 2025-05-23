@@ -7,6 +7,7 @@ import type { UserWithThreads } from "@/lib/session";
 import { getUser } from "@/lib/thread";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { ConfigureModal } from "./configure";
 
 export function Chat({ user: initialUser }: { user: UserWithThreads }) {
   const userQuery = useQuery({
@@ -18,6 +19,7 @@ export function Chat({ user: initialUser }: { user: UserWithThreads }) {
   const user = userQuery.data ?? initialUser;
 
   const [active, setActive] = useState<null | string>(null);
+  const [configureOpen, setConfigureOpen] = useState(false);
 
   const thread = user.threads.find((t) => t.id === active);
 
@@ -31,15 +33,27 @@ export function Chat({ user: initialUser }: { user: UserWithThreads }) {
 
   return (
     <SidebarProvider>
-      <AppSidebar user={user} active={active} setActive={setActive} />
+      <AppSidebar
+        user={user}
+        active={active}
+        setActive={setActive}
+        onConfigure={() => setConfigureOpen(true)}
+      />
       <SidebarInset>
         <ThreadView
           key={active}
           user={user}
           thread={thread}
           setActive={setActive}
+          onConfigure={() => setConfigureOpen(true)}
         />
       </SidebarInset>
+
+      <ConfigureModal
+        user={user}
+        isOpen={configureOpen}
+        onClose={() => setConfigureOpen(false)}
+      />
     </SidebarProvider>
   );
 }

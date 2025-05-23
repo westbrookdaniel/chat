@@ -5,7 +5,7 @@ import {
   PromptInputActions,
 } from "@/components/ui/prompt-input";
 import { Button } from "./ui/button";
-import { ArrowUp, Lightbulb, Square } from "lucide-react";
+import { ArrowUp, Brain, Globe, Square } from "lucide-react";
 import type { Options } from "@/db";
 import { cn } from "@/lib/utils";
 
@@ -42,23 +42,20 @@ export function Prompt({
         </PromptInputAction>
         */}
         <ExpandingButton
-          enabled={!!options.thinking}
-          toggle={() => setOptions((p) => ({ ...p, thinking: !p.thinking }))}
-          label="Thinking"
-          Icon={Lightbulb}
+          enabled={!!options.high}
+          toggle={() => setOptions((p) => ({ ...p, high: !p.high }))}
+          label="Opus"
+          Icon={Brain}
+          width={84}
         />
         {/*
-        <PromptInputAction tooltip="Search">
-          <Button
-            className="rounded-full"
-            size={options.search ? "default" : "icon"}
-            variant={options.search ? "secondary" : "ghost"}
-            onClick={() => setOptions((p) => ({ ...p, search: !p.search }))}
-          >
-            <Globe />
-            {options.search ? <span>Search</span> : null}
-          </Button>
-        </PromptInputAction>
+        <ExpandingButton
+          enabled={!!options.search}
+          toggle={() => setOptions((p) => ({ ...p, search: !p.search }))}
+          label="Search"
+          Icon={Globe}
+          width={98}
+        />
         */}
         <div className="flex-1" />
         <Button
@@ -90,20 +87,22 @@ function ExpandingButton({
   Icon,
   enabled,
   toggle,
+  width,
 }: {
   label: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Icon: React.ComponentType<any>;
   enabled: boolean;
   toggle: () => void;
+  width: number;
 }) {
   return (
     <PromptInputAction tooltip={label}>
       <Button
         className={cn(
           "rounded-full transition-all duration-300 overflow-hidden relative",
-          enabled ? "w-26" : "w-9 px-0",
         )}
+        style={{ width: enabled ? `${width}px` : "36px" }}
         size={enabled ? "default" : "icon"}
         variant={enabled ? "secondary" : "ghost"}
         onClick={() => toggle()}
@@ -111,7 +110,7 @@ function ExpandingButton({
         <Icon className="absolute left-2.5" />
         <span
           className={cn(
-            "transition-opacity pl-4",
+            "transition-opacity pl-5",
             enabled
               ? "opacity-100 duration-600"
               : "opacity-0 pointer-events-none duration-50",

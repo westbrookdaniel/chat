@@ -30,6 +30,6 @@ export const threadRelations = relations(threadTable, ({ one }) => ({
 export type Thread = InferSelectModel<typeof threadTable>;
 
 export type Options = {
-  thinking?: boolean;
+  high?: boolean;
   search?: boolean;
 };

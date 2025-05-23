@@ -7,7 +7,7 @@ import { ChatContainer } from "./ui/chat-container";
 import { createThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { UserWithThreads } from "@/lib/session";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Options } from "@/db";
 import {
   Reasoning,
@@ -18,15 +18,19 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { getGreeting } from "@/lib/greeting";
 import { createMessage } from "@/app/util";
+import { Button } from "./ui/button";
+import { SettingsIcon } from "lucide-react";
 
 export function ThreadView({
   user,
   thread,
   setActive,
+  onConfigure,
 }: {
   user: UserWithThreads;
   thread: Thread | undefined;
   setActive: (active: string | null) => void;
+  onConfigure: () => void;
 }) {
   const queryClient = getQueryClient();
 
@@ -34,7 +38,7 @@ export function ThreadView({
 
   const [options, setOptions] = useState<Options>({
     search: thread?.data.search ?? false,
-    thinking: thread?.data.thinking ?? false,
+    high: thread?.data.high ?? false,
   });
 
   const name = user.fullName ? user.fullName.split(" ")[0] : user.username;
@@ -61,24 +65,17 @@ export function ThreadView({
   // Handle kicking off assitant on creation with first message
   // but we also need to dedupe for strict mode
   // debounce isn't ideal for this but it works for now
-  const reloadTimeout = useRef<NodeJS.Timeout | null>(null);
-  const debouncedReload = useCallback(() => {
-    if (reloadTimeout.current) {
-      clearTimeout(reloadTimeout.current);
-    }
-    reloadTimeout.current = setTimeout(() => {
-      reload();
-    }, 100);
-  }, [reload]);
+  const debouncedReload = useMemo(() => debounce(reload, 100), [reload]);
   useEffect(() => {
     if (
+      user.anthropicApiKey &&
       status === "ready" &&
       messages.length === 1 &&
       messages[0].role === "user"
     ) {
       debouncedReload();
     }
-  }, [debouncedReload, messages, status]);
+  }, [debouncedReload, messages, status, user.anthropicApiKey]);
 
   return (
     <div
@@ -95,6 +92,20 @@ export function ThreadView({
               {messages.map((message, i) => (
                 <MessageDisplay key={i} message={message} />
               ))}
+
+              {!user.anthropicApiKey ? (
+                <Alert className="max-w-md">
+                  <AlertTitle>Missing API Key</AlertTitle>
+                  <AlertDescription>
+                    Please add your Anthropic API key to start chatting
+                  </AlertDescription>
+                  <Button className="mt-2 w-[180px]" onClick={onConfigure}>
+                    <SettingsIcon />
+                    Configure
+                  </Button>
+                </Alert>
+              ) : null}
+
               {error ? (
                 <Alert className="max-w-xl">
                   <AlertTitle>Error</AlertTitle>
@@ -194,4 +205,16 @@ function MessageDisplay({ message }: { message: UIMessage }) {
       </div>
     </Message>
   );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function debounce<T extends (...args: any[]) => void>(
+  func: T,
+  delay: number,
+): T {
+  let timeoutId: NodeJS.Timeout;
+  return ((...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  }) as T;
 }

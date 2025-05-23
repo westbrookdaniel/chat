@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Markdown } from "./markdown";
+import { useTextStream } from "./response-stream";
+import { useEffect } from "react";
 
 export type MessageProps = {
   children: React.ReactNode;
@@ -45,7 +47,7 @@ const MessageAvatar = ({
 };
 
 export type MessageContentProps = {
-  children: React.ReactNode;
+  children: string;
   markdown?: boolean;
   className?: string;
 } & React.ComponentProps<typeof Markdown> &
@@ -64,7 +66,7 @@ const MessageContent = ({
 
   return markdown ? (
     <Markdown className={classNames} {...props}>
-      {children as string}
+      {children}
     </Markdown>
   ) : (
     <div className={classNames} {...props}>

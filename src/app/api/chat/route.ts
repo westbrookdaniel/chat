@@ -1,16 +1,24 @@
 import { db, eq, threadTable } from "@/db";
-import { getModel } from "@/lib/models";
 import { getCurrentSession } from "@/lib/session";
 import { appendResponseMessages, generateText, streamText } from "ai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages, id, thinking } = await req.json();
+  const { messages, id, high } = await req.json();
 
   const { user } = await getCurrentSession();
   if (!user) throw new Error("Unauthorised");
+
+  if (!user.anthropicApiKey) {
+    throw new Error("Anthropic API key not configured");
+  }
+
+  const anthropic = createAnthropic({
+    apiKey: user.anthropicApiKey,
+  });
 
   const thread = await db.query.threadTable.findFirst({
     where: eq(threadTable.id, id),
@@ -20,7 +28,7 @@ export async function POST(req: Request) {
 
   if (thread.title === "Untitled") {
     const title = await generateText({
-      model: getModel("openai:gpt-4.1-mini"),
+      model: anthropic("claude-3-5-haiku-20241022"),
       prompt: JSON.stringify(messages),
       system:
         "Generate a concise, descriptive title (max 30 characters) for this chat thread based on the conversation content. The title should capture the main topic or purpose of the discussion. Do not include quotes in your response. ONLY respond with the title.",
@@ -32,17 +40,13 @@ export async function POST(req: Request) {
       .where(eq(threadTable.id, id));
   }
 
-  const model = getModel(thinking ? "openai:o4-mini" : "openai:gpt-4.1");
+  const model = anthropic(
+    high ? "claude-4-opus-20250514" : "claude-4-sonnet-20250514",
+  );
 
   const result = streamText({
     model,
     messages,
-
-    providerOptions: {
-      openai: {
-        reasoningSummary: "detailed",
-      },
-    },
 
     onError: ({ error }) => {
       console.error("Inference error", error);

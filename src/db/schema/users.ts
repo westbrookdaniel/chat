@@ -11,6 +11,8 @@ export const userTable = pgTable("user", {
   fullName: text("full_name"),
   avatarUrl: text("avatar_url"),
 
+  anthropicApiKey: text("anthropic_api_key"),
+
   createdAt: timestamp({ withTimezone: true }).defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
     .defaultNow()

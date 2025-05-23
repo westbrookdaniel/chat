@@ -1,4 +1,11 @@
-import { LogOut, MoreHorizontal, Plus, Search, Trash } from "lucide-react";
+import {
+  LogOut,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Settings,
+  Trash,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -34,10 +41,12 @@ export function AppSidebar({
   user,
   active,
   setActive,
+  onConfigure,
 }: {
   user: UserWithThreads;
   active: string | null;
   setActive: (active: string | null) => void;
+  onConfigure: () => void;
 }) {
   const queryClient = getQueryClient();
 
@@ -123,7 +132,7 @@ export function AppSidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={user} onConfigure={onConfigure} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
@@ -174,7 +183,13 @@ function SearchInput({
   );
 }
 
-function NavUser({ user }: { user: User }) {
+function NavUser({
+  user,
+  onConfigure,
+}: {
+  user: User;
+  onConfigure: () => void;
+}) {
   const { isMobile } = useSidebar();
   return (
     <SidebarMenu>
@@ -208,26 +223,10 @@ function NavUser({ user }: { user: User }) {
             align="end"
             sideOffset={4}
           >
-            {/*
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            */}
+            <DropdownMenuItem onClick={() => onConfigure()}>
+              <Settings />
+              Settings
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => logoutAction()}>
               <LogOut />
               Log out

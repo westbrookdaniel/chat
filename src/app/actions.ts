@@ -1,6 +1,6 @@
 "use server";
 
-import { and, db, eq, threadTable } from "@/db";
+import { and, db, eq, threadTable, userTable } from "@/db";
 import {
   deleteSessionTokenCookie,
   getCurrentSession,
@@ -21,12 +21,12 @@ export async function createThread({
   userId,
   messages,
   search,
-  thinking,
+  high,
 }: {
   userId: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages?: any[];
-  thinking?: boolean;
+  high?: boolean;
   search?: boolean;
 }) {
   const result = await db
@@ -36,7 +36,7 @@ export async function createThread({
       userId: userId,
       data: {
         messages: messages ?? [],
-        thinking,
+        high,
         search,
       },
     })
@@ -82,4 +82,28 @@ export async function renameThread({
   const updatedThread = result[0];
   if (!updatedThread) throw new Error("Internal Server Error");
   return updatedThread;
+}
+
+export async function updateUser({
+  id,
+  anthropicApiKey,
+}: {
+  id: string;
+  anthropicApiKey: string;
+}) {
+  const { user } = await getCurrentSession();
+
+  if (user && user.id !== id) {
+    throw new Error("Unauthorized");
+  }
+
+  const result = await db
+    .update(userTable)
+    .set({ id, anthropicApiKey })
+    .where(and(eq(userTable.id, id)))
+    .returning();
+
+  const updatedUser = result[0];
+  if (!updatedUser) throw new Error("Internal Server Error");
+  return updatedUser;
 }
