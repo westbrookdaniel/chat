@@ -6,6 +6,7 @@ import type { Thread } from "@/db";
 import type { UserWithThreads } from "@/lib/session";
 import { useQuery } from "@tanstack/react-query";
 import { getUser } from "@/lib/thread";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface ThreadViewWrapperProps {
   user: UserWithThreads;
@@ -31,15 +32,17 @@ export function ThreadViewWrapper({
   const user = userQuery.data ?? initialUser;
 
   return (
-    <ThreadView
-      key={thread?.id || "new"}
-      user={user}
-      thread={thread}
-      setActive={setActive}
-      onConfigure={onConfigure}
-      initialModel={initialModel}
-      initialMessage={initialMessage}
-    />
+    <TooltipProvider>
+      <ThreadView
+        key={thread?.id || "new"}
+        user={user}
+        thread={thread}
+        setActive={setActive}
+        onConfigure={onConfigure}
+        initialModel={initialModel}
+        initialMessage={initialMessage}
+      />
+    </TooltipProvider>
   );
 }
 

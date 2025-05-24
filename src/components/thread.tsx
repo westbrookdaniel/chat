@@ -31,7 +31,6 @@ import {
   Menu,
 } from "lucide-react";
 import { MessageActions, MessageAction } from "./ui/message";
-import { TooltipProvider } from "./ui/tooltip";
 import { SidebarTrigger, useSidebar } from "./ui/sidebar";
 import { Loader } from "./ui/loader";
 
@@ -105,6 +104,44 @@ export function ThreadView({
     },
   });
 
+  const handleOnSubmit = useCallback(async () => {
+    if (!thread) {
+      const nextThread = await createThread({
+        userId: user.id,
+        messages: await createInitialMessage(
+          input,
+          files.length > 0 ? filesToFileList(files) : undefined,
+        ),
+        ...options,
+      });
+
+      const newUser = {
+        ...user,
+        threads: [nextThread, ...user.threads],
+      };
+
+      queryClient.setQueryData(["user", user.id], newUser);
+
+      setActive(nextThread.id);
+      setFiles([]);
+    } else {
+      handleSubmit(undefined, {
+        experimental_attachments:
+          files.length > 0 ? filesToFileList(files) : undefined,
+      });
+      setFiles([]);
+    }
+  }, [
+    thread,
+    user,
+    input,
+    files,
+    options,
+    queryClient,
+    setActive,
+    handleSubmit,
+  ]);
+
   // Set initial message when component mounts for new chats
   useEffect(() => {
     if (!thread && initialMessage && input === "") {
@@ -156,43 +193,41 @@ export function ThreadView({
       {thread ? (
         <div className="flex flex-col flex-[1_1_auto] h-[1px]">
           <ChatContainer autoScroll className="flex-1 py-8">
-            <TooltipProvider>
-              <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 md:px-8 lg:px-16">
-                {messages.map((message, i) => (
-                  <MessageDisplay
-                    key={i}
-                    message={message}
-                    messageIndex={i}
-                    setMessages={setMessages}
-                    reload={stableReload}
-                  />
-                ))}
+            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 md:px-8 lg:px-16">
+              {messages.map((message, i) => (
+                <MessageDisplay
+                  key={i}
+                  message={message}
+                  messageIndex={i}
+                  setMessages={setMessages}
+                  reload={stableReload}
+                />
+              ))}
 
-                {status === "submitted" ? (
-                  <Loader variant="text-shimmer" />
-                ) : null}
+              {status === "submitted" ? (
+                <Loader variant="text-shimmer" />
+              ) : null}
 
-                {!user.anthropicApiKey ? (
-                  <Alert className="max-w-md">
-                    <AlertTitle>Missing API Key</AlertTitle>
-                    <AlertDescription>
-                      Please add your Anthropic API key to start chatting
-                    </AlertDescription>
-                    <Button className="mt-2 w-[180px]" onClick={onConfigure}>
-                      <SettingsIcon />
-                      Configure
-                    </Button>
-                  </Alert>
-                ) : null}
+              {!user.anthropicApiKey ? (
+                <Alert className="max-w-md">
+                  <AlertTitle>Missing API Key</AlertTitle>
+                  <AlertDescription>
+                    Please add your Anthropic API key to start chatting
+                  </AlertDescription>
+                  <Button className="mt-2 w-[180px]" onClick={onConfigure}>
+                    <SettingsIcon />
+                    Configure
+                  </Button>
+                </Alert>
+              ) : null}
 
-                {error ? (
-                  <Alert className="max-w-xl">
-                    <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error.message}</AlertDescription>
-                  </Alert>
-                ) : null}
-              </div>
-            </TooltipProvider>
+              {error ? (
+                <Alert className="max-w-xl">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error.message}</AlertDescription>
+                </Alert>
+              ) : null}
+            </div>
           </ChatContainer>
         </div>
       ) : (
@@ -202,35 +237,7 @@ export function ThreadView({
       )}
       <div className="pb-2 px-4 md:px-8 lg:px-16 mx-auto w-full max-w-4xl">
         <Prompt
-          onSubmit={async () => {
-            if (!thread) {
-              const nextThread = await createThread({
-                userId: user.id,
-                messages: await createInitialMessage(
-                  input,
-                  files.length > 0 ? filesToFileList(files) : undefined,
-                ),
-
-                ...options,
-              });
-
-              const newUser = {
-                ...user,
-                threads: [nextThread, ...user.threads],
-              };
-
-              queryClient.setQueryData(["user", user.id], newUser);
-
-              setActive(nextThread.id);
-              setFiles([]);
-            } else {
-              handleSubmit(undefined, {
-                experimental_attachments:
-                  files.length > 0 ? filesToFileList(files) : undefined,
-              });
-              setFiles([]);
-            }
-          }}
+          onSubmit={handleOnSubmit}
           handleInputChange={handleInputChange}
           value={input}
           status={status}
