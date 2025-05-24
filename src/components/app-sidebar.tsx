@@ -236,7 +236,7 @@ function NavUser({
   user,
   onConfigure,
 }: {
-  user: UserType | null;
+  user: User;
   onConfigure: () => void;
 }) {
   const { isMobile } = useSidebar();

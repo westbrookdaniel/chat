@@ -1,6 +1,5 @@
 import { NavigationClient } from "@/components/navigation-client";
 import { Button } from "@/components/ui/button";
-import { PromptInputTextarea } from "@/components/ui/prompt-input";
 import { getGreeting } from "@/lib/greeting";
 import { cookies } from "next/headers";
 
