@@ -25,7 +25,7 @@ export function useNavigation() {
 }
 
 interface NavigationClientProps {
-  user: UserWithThreads;
+  user: UserWithThreads | null;
   active: string | null;
   children: React.ReactNode;
   defaultOpen: boolean;
@@ -41,9 +41,10 @@ export function NavigationClient({
   const [configureOpen, setConfigureOpen] = useState(false);
 
   const userQuery = useQuery({
-    queryKey: ["user", initialUser.id],
+    queryKey: ["user", initialUser?.id],
     initialData: initialUser,
-    queryFn: () => getUser(initialUser.id),
+    queryFn: () => getUser(initialUser!.id),
+    enabled: !!initialUser,
   });
 
   const user = userQuery.data ?? initialUser;
@@ -73,11 +74,13 @@ export function NavigationClient({
           onConfigure={onConfigure}
         />
         <SidebarInset>{children}</SidebarInset>
-        <ConfigureModal
-          user={user}
-          isOpen={configureOpen}
-          onClose={() => setConfigureOpen(false)}
-        />
+        {user ? (
+          <ConfigureModal
+            user={user}
+            isOpen={configureOpen}
+            onClose={() => setConfigureOpen(false)}
+          />
+        ) : null}
       </SidebarProvider>
     </NavigationContext.Provider>
   );

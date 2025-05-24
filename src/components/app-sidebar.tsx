@@ -8,8 +8,9 @@ import {
   Trash,
   Moon,
   Sun,
+  UserIcon,
 } from "lucide-react";
-
+import type { User } from "@/db/schema";
 import {
   Sidebar,
   SidebarContent,
@@ -38,7 +39,6 @@ import { useEffect, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { User } from "@/db";
 import { useTheme } from "next-themes";
 import { RenameThreadModal } from "./rename-thread-modal";
 import { useRouter } from "next/navigation";
@@ -49,7 +49,7 @@ export function AppSidebar({
   setActive,
   onConfigure,
 }: {
-  user: UserWithThreads;
+  user: UserWithThreads | null;
   active: string | null;
   setActive: (active: string | null) => void;
   onConfigure: () => void;
@@ -64,7 +64,7 @@ export function AppSidebar({
     title: string;
   }>({ open: false, threadId: "", title: "" });
 
-  const fuse = new Fuse(user.threads, {
+  const fuse = new Fuse(user?.threads ?? [], {
     keys: ["title"],
     threshold: 0.3,
     includeScore: true,
@@ -72,7 +72,7 @@ export function AppSidebar({
 
   const filteredThreads =
     search.trim() === ""
-      ? user.threads
+      ? (user?.threads ?? [])
       : fuse.search(search).map((result) => result.item);
 
   return (
@@ -83,6 +83,7 @@ export function AppSidebar({
             <Button
               className="flex-1 min-w-9"
               size="icon"
+              disabled={!user}
               onClick={async () => {
                 setActive(null);
               }}
@@ -95,60 +96,67 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {filteredThreads.map((item) => (
-                <SidebarMenuItem key={item.id} className="group/item">
-                  <SidebarMenuButton
-                    onClick={() => setActive(item.id)}
-                    isActive={active === item.id}
-                    className="px-3"
-                  >
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
+              {!!user &&
+                filteredThreads.map((item) => (
+                  <SidebarMenuItem key={item.id} className="group/item">
+                    <SidebarMenuButton
+                      onClick={() => setActive(item.id)}
+                      isActive={active === item.id}
+                      className="px-3"
+                    >
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction className="opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100">
-                        <MoreHorizontal />
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="right" align="start">
-                      <DropdownMenuItem
-                        onClick={() =>
-                          setRenameModal({
-                            open: true,
-                            threadId: item.id,
-                            title: item.title,
-                          })
-                        }
-                      >
-                        <Pencil />
-                        <span>Rename</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={async () => {
-                          await deleteThread({ userId: user.id, id: item.id });
-
-                          const newUser = {
-                            ...user,
-                            threads: user.threads.filter(
-                              (thread) => thread.id !== item.id,
-                            ),
-                          };
-
-                          queryClient.setQueryData(["user", user.id], newUser);
-
-                          if (active === item.id) {
-                            router.push("/");
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuAction className="opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100">
+                          <MoreHorizontal />
+                        </SidebarMenuAction>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent side="right" align="start">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setRenameModal({
+                              open: true,
+                              threadId: item.id,
+                              title: item.title,
+                            })
                           }
-                        }}
-                      >
-                        <Trash />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              ))}
+                        >
+                          <Pencil />
+                          <span>Rename</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            await deleteThread({
+                              userId: user.id,
+                              id: item.id,
+                            });
+
+                            const newUser = {
+                              ...user,
+                              threads: user.threads.filter(
+                                (thread) => thread.id !== item.id,
+                              ),
+                            };
+
+                            queryClient.setQueryData(
+                              ["user", user.id],
+                              newUser,
+                            );
+
+                            if (active === item.id) {
+                              router.push("/");
+                            }
+                          }}
+                        >
+                          <Trash />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -156,20 +164,26 @@ export function AppSidebar({
       <SidebarFooter>
         <div className="flex items-center gap-0.5">
           <div className="flex-1">
-            <NavUser user={user} onConfigure={onConfigure} />
+            {user ? (
+              <NavUser user={user} onConfigure={onConfigure} />
+            ) : (
+              <SignedOutNavUser />
+            )}
           </div>
           <ThemeToggleButton />
         </div>
       </SidebarFooter>
       <SidebarRail />
-      <RenameThreadModal
-        key={renameModal.threadId}
-        open={renameModal.open}
-        onOpenChange={(open) => setRenameModal((prev) => ({ ...prev, open }))}
-        threadId={renameModal.threadId}
-        currentTitle={renameModal.title}
-        user={user}
-      />
+      {user && (
+        <RenameThreadModal
+          key={renameModal.threadId}
+          open={renameModal.open}
+          onOpenChange={(open) => setRenameModal((prev) => ({ ...prev, open }))}
+          threadId={renameModal.threadId}
+          currentTitle={renameModal.title}
+          user={user}
+        />
+      )}
     </Sidebar>
   );
 }
@@ -222,7 +236,7 @@ function NavUser({
   user,
   onConfigure,
 }: {
-  user: User;
+  user: UserType | null;
   onConfigure: () => void;
 }) {
   const { isMobile } = useSidebar();
@@ -297,5 +311,28 @@ function ThemeToggleButton() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function SignedOutNavUser() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          size="lg"
+          className="hover:bg-transparent cursor-default active:bg-transparent"
+        >
+          <Avatar className="h-8 w-8 rounded-full">
+            <AvatarFallback className="rounded-full">
+              <UserIcon className="size-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">Anonymous</span>
+            <span className="truncate text-xs"></span>
+          </div>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
