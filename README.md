@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chat
+
+An open-source AI chat application built with modern web technologies. Try the hosted version at [chat.westbrookdaniel.com](https://chat.westbrookdaniel.com/) or deploy your own instance.
+
+## Features
+
+- **Multi-Model AI Support**: Easily configurable to use OpenAI, Google, or other AI providers via the Vercel AI SDK
+- **GitHub OAuth Authentication**: Secure login with GitHub integration
+- **Persistent Chat History**: Conversations are saved and organized in threads
+- **Real-time Streaming**: Server-sent events for responsive AI interactions
+- **Auto-generated Titles**: Thread titles are automatically created from conversation context
+- **Modern UI**: Clean, responsive interface built with shadcn/ui components
+- **Reasoning Support**: Display AI reasoning when available
+- **File Upload**: Support for file attachments in conversations
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 with React Server Components
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: GitHub OAuth via Arctic library
+- **AI Integration**: Vercel AI SDK with model abstraction
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Deployment**: Optimized for Vercel and other serverless platforms
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and pnpm
+- PostgreSQL database
+- GitHub OAuth app credentials
+
+### Environment Variables
+
+Create a `.env.local` file with:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL=postgresql://user:pass@host:port/db
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Clone the repository
+git clone https://github.com/westbrookdaniel/chat.git
+cd chat
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Install dependencies
+pnpm install
 
-## Learn More
+# Start PostgreSQL (optional, using Docker)
+docker-compose up -d
 
-To learn more about Next.js, take a look at the following resources:
+# Generate and run database migrations
+pnpm db generate
+pnpm db migrate
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Start the development server
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+### Development Commands
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm lint         # Run ESLint
+pnpm db:studio    # Open Drizzle Studio
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Configuration
+
+### AI Model Configuration
+
+The application uses a model abstraction layer that supports multiple AI providers. Configure your preferred models in `src/lib/models.ts` or through environment variables.
+
+### GitHub OAuth Setup
+
+1. Create a GitHub OAuth app at [github.com/settings/developers](https://github.com/settings/developers)
+2. Set the authorization callback URL to `https://yourdomain.com/login/github/callback`
+3. Add your client ID and secret to environment variables
+
+## Customization
+
+This project is designed to be easily adaptable for different use cases:
+
+- **Corporate Deployment**: Configure with your organization's AI provider and policies
+- **Custom Models**: Add support for additional AI providers through the Vercel AI SDK
+- **UI Modifications**: Customize the interface using the existing shadcn/ui component library
+- **Feature Extensions**: Build on the existing architecture to add new capabilities
+
+## Contributing
+
+This is an open-source MIT licensed project. Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes using [Claude Code](https://claude.ai/code) for consistent development patterns
+4. Submit a pull request
+
+For development assistance, use Claude Code with this repository - it understands the project structure and can help implement features following established patterns.
+
+## License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Deployment
+
+The application is optimized for deployment on Vercel, but can be deployed anywhere that supports Node.js:
+
+```bash
+pnpm build
+pnpm start
+```
+
+For production deployments, ensure your database supports connection pooling and configure environment variables accordingly.

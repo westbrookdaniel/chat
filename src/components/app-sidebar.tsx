@@ -273,7 +273,7 @@ function NavUser({
   );
 }
 
-export function ThemeToggleButton() {
+function ThemeToggleButton() {
   const { setTheme } = useTheme();
 
   return (

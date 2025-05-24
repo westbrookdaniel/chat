@@ -7,7 +7,7 @@ import { ChatContainer } from "./ui/chat-container";
 import { createThread } from "@/app/actions";
 import { getQueryClient } from "@/app/providers";
 import { UserWithThreads } from "@/lib/session";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Textarea } from "./ui/textarea";
 import type { Options } from "@/db";
 import {
@@ -31,7 +31,9 @@ import {
   Menu,
 } from "lucide-react";
 import { MessageActions, MessageAction } from "./ui/message";
+import { TooltipProvider } from "./ui/tooltip";
 import { SidebarTrigger, useSidebar } from "./ui/sidebar";
+import { Loader } from "./ui/loader";
 
 export interface AttachedFile {
   id: string;
@@ -110,7 +112,18 @@ export function ThreadView({
     }
   }, [thread, initialMessage, input, setInput]);
 
-  const debouncedReload = useMemo(() => debounce(reload, 10), [reload]);
+  // Create stable reload function reference
+  const reloadRef = useRef(reload);
+  reloadRef.current = reload;
+
+  const stableReload = useCallback(() => {
+    reloadRef.current();
+  }, []);
+
+  const debouncedReload = useMemo(
+    () => debounce(stableReload, 10),
+    [stableReload],
+  );
 
   // Handle kicking off assitant on creation with first message
   // but we also need to dedupe for strict mode
@@ -143,37 +156,43 @@ export function ThreadView({
       {thread ? (
         <div className="flex flex-col flex-[1_1_auto] h-[1px]">
           <ChatContainer autoScroll className="flex-1 py-8">
-            <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 md:px-8 lg:px-16">
-              {messages.map((message, i) => (
-                <MessageDisplay
-                  key={i}
-                  message={message}
-                  messageIndex={i}
-                  setMessages={setMessages}
-                  reload={debouncedReload}
-                />
-              ))}
+            <TooltipProvider>
+              <div className="flex flex-col gap-8 max-w-6xl mx-auto w-full px-4 md:px-8 lg:px-16">
+                {messages.map((message, i) => (
+                  <MessageDisplay
+                    key={i}
+                    message={message}
+                    messageIndex={i}
+                    setMessages={setMessages}
+                    reload={stableReload}
+                  />
+                ))}
 
-              {!user.anthropicApiKey ? (
-                <Alert className="max-w-md">
-                  <AlertTitle>Missing API Key</AlertTitle>
-                  <AlertDescription>
-                    Please add your Anthropic API key to start chatting
-                  </AlertDescription>
-                  <Button className="mt-2 w-[180px]" onClick={onConfigure}>
-                    <SettingsIcon />
-                    Configure
-                  </Button>
-                </Alert>
-              ) : null}
+                {status === "submitted" ? (
+                  <Loader variant="text-shimmer" />
+                ) : null}
 
-              {error ? (
-                <Alert className="max-w-xl">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error.message}</AlertDescription>
-                </Alert>
-              ) : null}
-            </div>
+                {!user.anthropicApiKey ? (
+                  <Alert className="max-w-md">
+                    <AlertTitle>Missing API Key</AlertTitle>
+                    <AlertDescription>
+                      Please add your Anthropic API key to start chatting
+                    </AlertDescription>
+                    <Button className="mt-2 w-[180px]" onClick={onConfigure}>
+                      <SettingsIcon />
+                      Configure
+                    </Button>
+                  </Alert>
+                ) : null}
+
+                {error ? (
+                  <Alert className="max-w-xl">
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error.message}</AlertDescription>
+                  </Alert>
+                ) : null}
+              </div>
+            </TooltipProvider>
           </ChatContainer>
         </div>
       ) : (
@@ -231,11 +250,10 @@ export function ThreadView({
 
 const MessageDisplay = memo(MessageDisplayInner, (prev, next) => {
   return (
-    // fix message check
+    // optimise message check
     prev.message.content === next.message.content &&
     prev.messageIndex === next.messageIndex &&
-    prev.reload === next.reload &&
-    prev.setMessages === next.setMessages
+    prev.reload === next.reload
   );
 });
 
@@ -256,18 +274,18 @@ function MessageDisplayInner({
   const [editValue, setEditValue] = useState(message.content);
   const [copied, setCopied] = useState(false);
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }, []);
 
-  const handleEdit = () => {
+  const handleEdit = useCallback(() => {
     setIsEditing(true);
     setEditValue(message.content);
-  };
+  }, [message.content]);
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = useCallback(() => {
     setMessages((prev) => {
       const updated = [...prev];
 
@@ -294,17 +312,33 @@ function MessageDisplayInner({
 
     // Reload to continue conversation from this point
     setTimeout(() => reload(), 100);
-  };
+  }, [editValue, messageIndex, setMessages, reload]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
     setEditValue(message.content);
-  };
+  }, [message.content]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setMessages((prev) => prev.slice(0, messageIndex));
     setTimeout(() => reload(), 100);
-  };
+  }, [messageIndex, setMessages, reload]);
+
+  // Stable handlers for button clicks
+  const handleCopyMessage = useCallback(() => {
+    copyToClipboard(message.content);
+  }, [copyToClipboard, message.content]);
+
+  const getMessageText = useCallback(() => {
+    return message.parts
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("\n");
+  }, [message.parts]);
+
+  const handleCopyAssistantMessage = useCallback(() => {
+    copyToClipboard(getMessageText());
+  }, [copyToClipboard, getMessageText]);
 
   if (message.role === "user") {
     // Convert message attachments to AttachedFile format for display
@@ -361,7 +395,7 @@ function MessageDisplayInner({
               <MessageContent className="whitespace-pre-wrap">
                 {message.content}
               </MessageContent>
-              <MessageActions className="lg:opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
+              <MessageActions className="md:opacity-0 group-hover:opacity-100 transition-opacity duration-200 justify-end">
                 <MessageAction tooltip="Edit message">
                   <Button
                     variant="ghost"
@@ -377,7 +411,7 @@ function MessageDisplayInner({
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    onClick={() => copyToClipboard(message.content)}
+                    onClick={handleCopyMessage}
                   >
                     {copied ? (
                       <Check className="h-3 w-3" />
@@ -403,13 +437,6 @@ function MessageDisplayInner({
       </Message>
     );
   }
-
-  const getMessageText = () => {
-    return message.parts
-      .filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join("\n");
-  };
 
   return (
     <Message className="justify-start group">
@@ -448,13 +475,13 @@ function MessageDisplayInner({
             );
           }
         })}
-        <MessageActions className="lg:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <MessageActions className="md:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <MessageAction tooltip="Copy message">
             <Button
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              onClick={() => copyToClipboard(getMessageText())}
+              onClick={handleCopyAssistantMessage}
             >
               {copied ? (
                 <Check className="h-3 w-3" />
