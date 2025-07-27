@@ -76,7 +76,7 @@ export function AppSidebar({
       : fuse.search(search).map((result) => result.item);
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarContent className="gap-0">
         <SidebarHeader className="gap-2 mt-1">
           <div className="flex gap-2">
@@ -93,7 +93,7 @@ export function AppSidebar({
             <SearchInput search={search} setSearch={setSearch} />
           </div>
         </SidebarHeader>
-        <SidebarGroup>
+        <SidebarGroup className="transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
               {!!user &&
@@ -207,6 +207,7 @@ function SearchInput({
       className={cn(
         "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
         "relative transition-all ease-in-out duration-300",
+        "group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none",
         isActive ? "w-[300px]" : "w-9",
       )}
       onClick={() => setIsActive(true)}
@@ -247,9 +248,17 @@ function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className={cn(
+                "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground",
+              )}
             >
-              <Avatar className="h-8 w-8 rounded-full">
+              <Avatar
+                className={cn(
+                  "size-8 rounded-full",
+                  "transition-all group-data-[collapsible=icon]:size-7",
+                  "group-data-[collapsible=icon]:ml-1",
+                )}
+              >
                 <AvatarImage
                   src={user.avatarUrl!}
                   alt={user.fullName ?? user.username}
@@ -293,7 +302,14 @@ function ThemeToggleButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="size-9" size="icon">
+        <Button
+          variant="ghost"
+          className={cn(
+            "size-9",
+            "transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none",
+          )}
+          size="icon"
+        >
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
@@ -322,14 +338,20 @@ function SignedOutNavUser() {
           size="lg"
           className="hover:bg-transparent cursor-default active:bg-transparent"
         >
-          <Avatar className="h-8 w-8 rounded-full">
+          <Avatar
+            className={cn(
+              "size-8 rounded-full",
+              "transition-all group-data-[collapsible=icon]:size-7",
+              "group-data-[collapsible=icon]:ml-1",
+            )}
+          >
             <AvatarFallback className="rounded-full">
               <UserIcon className="size-4" />
             </AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">Anonymous</span>
-            <span className="truncate text-xs"></span>
+            <span className="truncate text-xs">Sign in to Continue</span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>

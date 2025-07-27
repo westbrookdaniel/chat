@@ -23,7 +23,8 @@ export default async function Page({ searchParams }: PageProps) {
 
   return (
     <NavigationClient user={user} active={null} defaultOpen={defaultOpen}>
-      <Suspense fallback={<div>Loading...</div>}>
+      {/* TODO loading */}
+      <Suspense fallback={null}>
         <ThreadViewWrapper
           user={user}
           thread={undefined}
@@ -34,4 +35,3 @@ export default async function Page({ searchParams }: PageProps) {
     </NavigationClient>
   );
 }
-
